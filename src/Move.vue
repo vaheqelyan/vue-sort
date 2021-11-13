@@ -16,6 +16,7 @@ export default {
     boundEntries: Array,
     columnName: String,
     container: HTMLDivElement,
+    index: Number,
   },
   data: () => ({
     initXY: {
@@ -69,6 +70,7 @@ export default {
         top: this.top,
         initXY: this.initXY,
         edge: this.edge,
+        index: this.index,
       })
     },
 

@@ -4,14 +4,19 @@
       <div class="appList__inner" :style="getContainerHeight.style">
         <div class="scrollList__content" :style="getVirtualList.style">
           <move
-            v-for="item in getVirtualList.selection"
-            :key="item.id"
+            v-for="(item, index) in getVirtualList.selection"
+            :key="item[itemId]"
             @start="onStartDrag"
             @end="onEnd"
             :has-started="start"
             :container="$refs.container"
+            :index="index"
           >
-            <slot name="item" v-bind:item="item" />
+            <slot
+              name="item"
+              v-bind:item="item"
+              v-bind:is-active="index === activeIndex"
+            />
           </move>
         </div>
       </div>
@@ -30,6 +35,7 @@ import Dragger from './Dragger.vue'
 export default {
   props: {
     list: Array,
+    itemId: String,
     rowHeight: Number,
     overscanCount: {
       type: Number,
@@ -42,7 +48,7 @@ export default {
   },
   data: () => ({
     start: false,
-    activeIndex: 0,
+    activeIndex: -1,
     height: 0,
     offset: 0,
     moveInstance: {},
@@ -53,6 +59,7 @@ export default {
   methods: {
     onStartDrag(value) {
       this.start = true
+      this.activeIndex = value.index
       this.moveInstance = value
     },
     onStart({ index, height }) {
