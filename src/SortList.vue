@@ -7,7 +7,6 @@
             v-for="(item, index) in getVirtualList.selection"
             :key="item[itemId]"
             @start="onStartDrag"
-            @end="onEnd"
             :has-started="start"
             :container="$refs.container"
             :index="index"
@@ -15,15 +14,24 @@
             <slot
               name="item"
               v-bind:item="item"
-              v-bind:is-active="index === activeIndex"
+              v-bind:is-active="getVirtualList.start + index === activeIndex"
             />
           </move>
         </div>
       </div>
     </div>
 
-    <dragger v-if="start" :move="moveInstance" :container="$refs.container">
-      <slot name="drag-element" v-bind:item="list[activeIndex]" />
+    <dragger
+      v-if="start"
+      :move="moveInstance"
+      :container="$refs.container"
+      @update="onUpdate"
+      @end="onEnd"
+    >
+      <slot
+        name="drag-element"
+        v-bind:item="list[getVirtualList.start + activeIndex]"
+      />
     </dragger>
   </div>
 </template>
@@ -57,6 +65,15 @@ export default {
     this.height = this.$refs.container.offsetHeight
   },
   methods: {
+    onUpdate(y) {
+      if (this.start) {
+        let newIndex = Math.floor((this.offset + y) / 100)
+        newIndex = Math.min(Math.max(0, newIndex), this.list.length - 1)
+
+        this.$emit('sort', { index: this.activeIndex, newIndex })
+        this.activeIndex = newIndex
+      }
+    },
     onStartDrag(value) {
       this.start = true
       this.activeIndex = value.index
@@ -66,7 +83,9 @@ export default {
       this.start = true
     },
     onEnd() {
+      console.log('end')
       this.start = false
+      this.activeIndex = -1
     },
     onScroll() {
       const { scrollTop } = this.$refs.container

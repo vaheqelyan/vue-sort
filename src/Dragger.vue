@@ -9,6 +9,17 @@ const CARD_WIDTH = 280
 const EDGE_THRESHOLD = 20
 const CARD_HEIGHT = 100
 
+function throttle(func, timeFrame) {
+  var lastTime = 0
+  return function () {
+    var now = new Date()
+    if (now - lastTime >= timeFrame) {
+      func()
+      lastTime = now
+    }
+  }
+}
+
 export default {
   name: 'dragger',
   props: {
@@ -36,6 +47,8 @@ export default {
       top: 0,
       bottom: 0,
     },
+
+    updateThrottled: null,
   }),
   created() {
     window.addEventListener('mousemove', this.mousemove)
@@ -47,6 +60,8 @@ export default {
     this.edge = this.move.edge
     this.top = this.move.top
     this.height = this.move.height
+
+    this.updateThrottled = throttle(this.update, 500)
   },
   methods: {
     mousemove({ clientX, clientY }) {
@@ -81,6 +96,7 @@ export default {
       if (topSensor || bottomSensor) {
         if (!this.intervalId) {
           this.intervalId = setInterval(() => {
+            this.updateThrottled()
             this.container.scrollTop += 2 * this.vel * this.sign
           }, 10)
         }
@@ -91,6 +107,8 @@ export default {
         this.sign = 0
         this.vel = 1
         this.edge = { top: 0, bottom: 0 }
+      } else {
+        this.updateThrottled()
       }
     },
 
@@ -105,6 +123,10 @@ export default {
       this.intervalId = false
 
       this.$emit('end')
+    },
+
+    update() {
+      this.$emit('update', this.top + this.newXY.y)
     },
   },
   computed: {
