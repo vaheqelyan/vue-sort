@@ -1,5 +1,5 @@
 <template>
-  <div @mousedown="mousedown" class="item">
+  <div @mousedown="mousedown" class="item" :style="getStyle">
     <slot />
   </div>
 </template>
@@ -17,6 +17,7 @@ export default {
     columnName: String,
     container: HTMLDivElement,
     index: Number,
+    newIndex: Number
   },
   data: () => ({
     initXY: {
@@ -88,6 +89,15 @@ export default {
       }
     },
   },
+  computed: {
+    getStyle() {
+      if (this.hasStarted && this.newIndex >= this.index) {
+        return {
+          transform: `translateY(${-CARD_HEIGHT}px)`
+        }
+      }
+    }
+  }
 }
 </script>
 

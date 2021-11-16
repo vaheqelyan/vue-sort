@@ -47,8 +47,6 @@ export default {
       top: 0,
       bottom: 0,
     },
-
-    updateThrottled: null,
   }),
   created() {
     window.addEventListener('mousemove', this.mousemove)
@@ -60,8 +58,6 @@ export default {
     this.edge = this.move.edge
     this.top = this.move.top
     this.height = this.move.height
-
-    this.updateThrottled = throttle(this.update, 500)
   },
   methods: {
     mousemove({ clientX, clientY }) {
@@ -96,7 +92,7 @@ export default {
       if (topSensor || bottomSensor) {
         if (!this.intervalId) {
           this.intervalId = setInterval(() => {
-            this.updateThrottled()
+            this.update()
             this.container.scrollTop += 2 * this.vel * this.sign
           }, 10)
         }
@@ -108,7 +104,7 @@ export default {
         this.vel = 1
         this.edge = { top: 0, bottom: 0 }
       } else {
-        this.updateThrottled()
+        this.update()
       }
     },
 

@@ -9,7 +9,8 @@
             @start="onStartDrag"
             :has-started="start"
             :container="$refs.container"
-            :index="index"
+            :index="getVirtualList.start + index"
+            :new-index="newIndex"
           >
             <slot
               name="item"
@@ -60,6 +61,7 @@ export default {
     height: 0,
     offset: 0,
     moveInstance: {},
+    newIndex: -1,
   }),
   mounted() {
     this.height = this.$refs.container.offsetHeight
@@ -70,8 +72,7 @@ export default {
         let newIndex = Math.floor((this.offset + y) / 100)
         newIndex = Math.min(Math.max(0, newIndex), this.list.length - 1)
 
-        this.$emit('sort', { index: this.activeIndex, newIndex })
-        this.activeIndex = newIndex
+        this.newIndex = newIndex
       }
     },
     onStartDrag(value) {
@@ -83,7 +84,8 @@ export default {
       this.start = true
     },
     onEnd() {
-      console.log('end')
+      this.$emit('sort', { index: this.activeIndex, newIndex: this.newIndex })
+
       this.start = false
       this.activeIndex = -1
     },
