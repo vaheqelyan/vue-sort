@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="scrollList" ref="container" @scroll="onScroll">
-      <div class="appList__inner" :style="getContainerHeight.style">
+      <div class="scrollList__inner" :style="getContainerHeight.style">
         <div class="scrollList__content" :style="getVirtualList.style">
           <move
             v-for="(item, index) in getVirtualList.selection"
@@ -29,10 +29,7 @@
       @update="onUpdate"
       @end="onEnd"
     >
-      <slot
-        name="drag-element"
-        v-bind:item="list[activeIndex]"
-      />
+      <slot name="drag-element" v-bind:item="list[activeIndex]" />
     </dragger>
   </div>
 </template>
@@ -41,11 +38,17 @@
 import Move from './Move.vue'
 import Dragger from './Dragger.vue'
 
+const EVENT_OPTS = {
+  passive: true,
+  capture: true,
+}
+
 export default {
   props: {
     list: Array,
     itemId: String,
     rowHeight: Number,
+    viewport: Boolean,
     overscanCount: {
       type: Number,
       default: 5,
@@ -64,9 +67,23 @@ export default {
     newIndex: -1,
   }),
   mounted() {
-    this.height = this.$refs.container.offsetHeight
+    if (!this.viewport) {
+      this.height = this.$refs.container.offsetHeight
+    } else {
+      this.height = window.innerHeight || document.documentElement.offsetHeight
+
+      window.addEventListener('scroll', this.onScroll, EVENT_OPTS)
+      window.addEventListener('resize', this.onResize, EVENT_OPTS)
+    }
   },
   methods: {
+    onResize() {
+      let height = window.innerHeight || document.documentElement.offsetHeight
+      if (height !== this.height) {
+        this.height = height
+      }
+    },
+
     onUpdate(y) {
       if (this.start) {
         let newIndex = Math.floor((this.offset + y) / 100)
@@ -90,17 +107,31 @@ export default {
       this.activeIndex = -1
     },
     onScroll() {
-      const { scrollTop } = this.$refs.container
-      this.offset = scrollTop
+      if (!this.viewport) {
+        this.offset = this.$refs.container.scrollTop
+      } else {
+        let offset = Math.max(
+          0,
+          (this.$refs.container &&
+            -this.$refs.container.getBoundingClientRect().top) ||
+            0
+        )
+
+        this.offset = offset
+      }
     },
   },
   computed: {
     getVirtualList() {
       let start = (this.offset / this.rowHeight) | 0
       let visibleRowCount = (this.height / this.rowHeight) | 0
-      start = Math.max(0, start - (start % this.overscanCount))
-      visibleRowCount += this.overscanCount
+
+      if (this.overscanCount) {
+        start = Math.max(0, start - (start % this.overscanCount))
+        visibleRowCount += this.overscanCount
+      }
       let end = start + 1 + visibleRowCount
+
       let selection = this.list.slice(start, end)
 
       return { selection, style: { top: `${start * this.rowHeight}px` }, start }
@@ -121,28 +152,14 @@ export default {
 </script>
 
 <style>
-.scrollList {
-  overflow-y: scroll;
-  max-height: 300px;
-  width: 303px;
-  height: 100%;
-  position: relative;
-}
 .scrollList__inner {
-  position: relative;
+  /*position: relative;
   overflow: hidden;
   width: 100%;
-  min-height: 100%;
+  min-height: 100%;*/
 }
-.scollList__inner--push {
-  margin-top: 88px;
-}
+
 .scrollList__content {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 100%;
-  overflow: visible;
+  position: relative;
 }
 </style>
