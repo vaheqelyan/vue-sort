@@ -101,10 +101,15 @@ export default {
       this.start = true
     },
     onEnd() {
-      this.$emit('sort', { index: this.activeIndex, newIndex: this.newIndex })
+      if (this.newIndex !== -1) {
+        this.$emit('sort', {
+          index: this.activeIndex,
+          newIndex: this.newIndex,
+        })
 
-      this.start = false
-      this.activeIndex = -1
+        this.start = false
+        this.activeIndex = -1
+      }
     },
     onScroll() {
       if (!this.viewport) {
