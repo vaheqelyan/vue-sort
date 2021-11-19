@@ -1,5 +1,10 @@
 <template>
-  <div @mousedown="mousedown" class="item" :style="getStyle">
+  <div
+    @mousedown="mousedown"
+    class="item"
+    :style="getStyle"
+    :class="{ transition: hasStarted }"
+  >
     <slot />
   </div>
 </template>
@@ -17,7 +22,8 @@ export default {
     columnName: String,
     container: HTMLDivElement,
     index: Number,
-    newIndex: Number
+    newIndex: Number,
+    activeIndex: Number,
   },
   data: () => ({
     initXY: {
@@ -91,13 +97,31 @@ export default {
   },
   computed: {
     getStyle() {
-      if (this.hasStarted && this.newIndex >= this.index) {
-        return {
-          transform: `translateY(${-CARD_HEIGHT}px)`
-        }
+      if (
+        !this.hasStarted ||
+        this.newIndex === -1 ||
+        this.activeIndex === -1 ||
+        this.activeIndex === this.index
+      )
+        return
+
+      const isDown = Math.sign(this.newIndex - this.activeIndex) > 0
+
+      if (
+        this.index >= this.activeIndex &&
+        this.index <= this.newIndex &&
+        isDown
+      ) {
+        return { transform: `translateY(${-CARD_HEIGHT}px)` }
+      } else if (
+        this.index <= this.activeIndex &&
+        this.index >= this.newIndex &&
+        !isDown
+      ) {
+        return { transform: `translateY(${CARD_HEIGHT}px)` }
       }
-    }
-  }
+    },
+  },
 }
 </script>
 
@@ -105,13 +129,13 @@ export default {
 .item {
   height: 100px;
   width: 100%;
-  box-shadow: inset 0px 0px 4px red;
   user-select: none;
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 20px;
   position: static;
+  box-shadow: inset 0px 0px 4px red;
 }
 .transition {
   transition: transform 0.2s;

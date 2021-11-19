@@ -3,10 +3,19 @@ import { ref } from 'vue'
 import SortList from './SortList.vue'
 
 const msg = ref('Hello World!')
+
+function uid() {
+  var firstPart = (Math.random() * 46656) | 0
+  var secondPart = (Math.random() * 46656) | 0
+  firstPart = ('000' + firstPart.toString(36)).slice(-3)
+  secondPart = ('000' + secondPart.toString(36)).slice(-3)
+  return firstPart + secondPart
+}
+
 const items = ref(
-  new Array(50).fill().map((value, index) => ({
+  new Array(20).fill().map((value, index) => ({
     name: `${value}-${index}`,
-    id: Math.random(),
+    id: uid(),
     index,
   }))
 )
@@ -21,8 +30,6 @@ const onSort = ({ index, newIndex }) => {
 
   data = data.move(index, newIndex)
   items.value = data
-
-  console.log(index, newIndex)
 }
 </script>
 
@@ -33,25 +40,24 @@ const onSort = ({ index, newIndex }) => {
     item-id="id"
     @sort="onSort"
     class="list"
-    viewport
   >
     <template v-slot:item="{ item, isActive }">
-      <div v-if="isActive" style="box-shadow: inset 0px 0px 20px red"></div>
-      <div v-else>Hello {{ item.index }} {{ isActive }}</div>
+      <div v-if="isActive">ACTIVE</div>
+      <div v-else>Hello {{ item.id }}</div>
     </template>
 
     <template v-slot:drag-element="{ item }">
-      <div>Hello {{ item.id }}</div>
+      <div>Hello {{ item.index }}</div>
     </template>
   </SortList>
 </template>
 
 <style>
 .list {
-  /*max-height: 500px;*/
+  height: 500px;
   width: 300px;
-  /*overflow-y: scroll;*/
-  position: relative;
-  top: 100px;
+  overflow-y: scroll;
+  /*position: relative;
+  top: 100px;*/
 }
 </style>

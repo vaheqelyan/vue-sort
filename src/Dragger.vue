@@ -1,5 +1,5 @@
 <template>
-  <div :style="getStyle" class="item fixed">
+  <div :style="getStyle" class="item fixed no-transition">
     <slot />
   </div>
 </template>
@@ -25,6 +25,7 @@ export default {
   props: {
     move: Object,
     container: HTMLDivElement,
+    viewport: Boolean
   },
   data: () => ({
     initXY: {
@@ -143,3 +144,9 @@ export default {
   },
 }
 </script>
+
+<style>
+.no-transition {
+  transition: none;
+}
+</style>

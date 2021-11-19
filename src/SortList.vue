@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="scrollList" ref="container" @scroll="onScroll">
+    <div class="scrollList" ref="container" @scroll="onScroll" v-bind="$attrs">
       <div class="scrollList__inner" :style="getContainerHeight.style">
         <div class="scrollList__content" :style="getVirtualList.style">
           <move
@@ -10,6 +10,7 @@
             :has-started="start"
             :container="$refs.container"
             :index="getVirtualList.start + index"
+            :active-index="activeIndex"
             :new-index="newIndex"
           >
             <slot
@@ -25,7 +26,7 @@
     <dragger
       v-if="start"
       :move="moveInstance"
-      :container="$refs.container"
+      :container="getContainer"
       @update="onUpdate"
       @end="onEnd"
     >
@@ -43,6 +44,11 @@ const EVENT_OPTS = {
   capture: true,
 }
 
+Array.prototype.move = function (from, to) {
+  this.splice(to, 0, this.splice(from, 1)[0])
+  return this
+}
+
 export default {
   props: {
     list: Array,
@@ -51,9 +57,10 @@ export default {
     viewport: Boolean,
     overscanCount: {
       type: Number,
-      default: 5,
+      default: 1,
     },
   },
+  inheritAttrs: false,
   components: {
     Move,
     Dragger,
@@ -87,6 +94,7 @@ export default {
     onUpdate(y) {
       if (this.start) {
         let newIndex = Math.floor((this.offset + y) / 100)
+
         newIndex = Math.min(Math.max(0, newIndex), this.list.length - 1)
 
         this.newIndex = newIndex
@@ -97,19 +105,17 @@ export default {
       this.activeIndex = value.index
       this.moveInstance = value
     },
-    onStart({ index, height }) {
-      this.start = true
-    },
     onEnd() {
       if (this.newIndex !== -1) {
         this.$emit('sort', {
           index: this.activeIndex,
           newIndex: this.newIndex,
         })
-
-        this.start = false
-        this.activeIndex = -1
       }
+
+      this.activeIndex = -1
+      this.newIndex = -1
+      this.start = false
     },
     onScroll() {
       if (!this.viewport) {
@@ -152,19 +158,29 @@ export default {
         },
       }
     },
+
+    getContainer () {
+      return this.viewport ? document.documentElement : this.$refs.container
+    }
   },
 }
 </script>
 
 <style>
 .scrollList__inner {
-  /*position: relative;
+  position: relative;
   overflow: hidden;
   width: 100%;
-  min-height: 100%;*/
+  min-height: 100%;
 }
 
 .scrollList__content {
-  position: relative;
+  /*position: relative;*/
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  overflow: visible;
 }
 </style>
