@@ -31,7 +31,7 @@
     >
       <slot
         name="drag-element"
-        v-bind:item="list[getVirtualList.start + activeIndex]"
+        v-bind:item="list[activeIndex]"
       />
     </dragger>
   </div>
