@@ -1,6 +1,8 @@
 <script setup>
 import { ref } from 'vue'
 import SortList from './SortList.vue'
+import DynamicVirtualList from './DynamicVirtualList.vue'
+import items from './data.js';
 
 const msg = ref('Hello World!')
 
@@ -12,44 +14,35 @@ function uid() {
   return firstPart + secondPart
 }
 
-const items = ref(
+/*const items = ref(
   new Array(20).fill().map((value, index) => ({
     name: `${value}-${index}`,
     id: uid(),
     index,
   }))
-)
+)*/
 
 Array.prototype.move = function (from, to) {
   this.splice(to, 0, this.splice(from, 1)[0])
   return this
 }
 
-const onSort = ({ index, newIndex }) => {
+/*const onSort = ({ index, newIndex }) => {
   let data = items.value.slice()
 
   data = data.move(index, newIndex)
   items.value = data
-}
+}*/
 </script>
 
 <template>
-  <SortList
-    :list="items"
-    :row-height="100"
-    item-id="id"
-    @sort="onSort"
-    class="list"
-  >
-    <template v-slot:item="{ item, isActive }">
-      <div v-if="isActive">ACTIVE</div>
-      <div v-else>Hello {{ item.id }}</div>
-    </template>
-
-    <template v-slot:drag-element="{ item }">
-      <div>Hello {{ item.index }}</div>
-    </template>
-  </SortList>
+  <div class="container">
+    <DynamicVirtualList :list="items" v-slot:row="{row}" viewport>
+    <img width="100" height="100" :src="row.data.avatar" style="float: left"/>
+    <h2>#{{row.index}} {{row.data.name}}</h2>
+    <p>{{row.data.content}}</p>
+    </DynamicVirtualList>
+  </div>
 </template>
 
 <style>
@@ -59,5 +52,14 @@ const onSort = ({ index, newIndex }) => {
   overflow-y: scroll;
   /*position: relative;
   top: 100px;*/
+}
+
+.container {
+  margin-top: 100px;
+  /*height: 100%;*/
+  /*border-top: 1px solid #333;
+  border-bottom: 1px solid #333;
+  min-height: 200px;
+  height: calc(100vh - 15em);*/
 }
 </style>

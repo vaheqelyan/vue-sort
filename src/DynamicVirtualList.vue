@@ -9,10 +9,16 @@
 </template>
 
 <script>
+const EVENT_OPTS = {
+  passive: true,
+  capture: true,
+}
+
 export default {
   name: 'dynamic-virtual-list',
   props: {
     list: Array,
+    viewport: Boolean,
   },
   data: () => ({
     bottom: 0,
@@ -26,13 +32,43 @@ export default {
     averageHeight: 0,
   }),
   mounted() {
-    this.viewportHeight = this.$refs.viewport.offsetHeight
+    if (this.viewport) {
+      this.resized()
+      //this.onScroll();
+      window.addEventListener('resize', this.resized, EVENT_OPTS)
+      window.addEventListener('scroll', this.onScroll, EVENT_OPTS)
+    } else {
+      this.viewportHeight = this.$refs.viewport.offsetHeight
+    }
+
+    /*var ro = new ResizeObserver(entries => {
+  for (let entry of entries) {
+  }
+});
+
+// Observe one or multiple elements
+ro.observe(this.$refs.viewport);*/
+
     this.rows = this.$refs.content.getElementsByClassName('vList__row')
     this.initVisibleRows()
   },
   methods: {
+    resized() {
+      let height = window.innerHeight || document.documentElement.offsetHeight
+      if (height !== this.viewportHeight) {
+        this.viewportHeight = height
+      }
+    },
     async onScroll() {
-      const { scrollTop } = this.$refs.viewport
+      let scrollTop = 0
+      if (!this.viewport) {
+        scrollTop = this.$refs.viewport.scrollTop
+      } else {
+        scrollTop = Math.max(
+          0,
+          -this.$refs.viewport.getBoundingClientRect().top || 0
+        )
+      }
 
       const listLength = this.list.length
 
@@ -72,6 +108,8 @@ export default {
       }
 
       this.end = i
+
+      //console.log(this.heightMap.reduce((acc, value) => acc + value, 0))
 
       const remaining = listLength - this.end
       this.averageHeight = totalHeight / this.end
@@ -129,7 +167,7 @@ export default {
 <style>
 .vList {
   position: relative;
-  overflow-y: auto;
+  /*overflow-y: auto;*/
   -webkit-overflow-scrolling: touch;
   display: block;
   height: 100%;
