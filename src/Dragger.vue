@@ -124,7 +124,7 @@ export default {
     },
 
     update() {
-      this.$emit('update', this.top + this.newXY.y)
+      this.$emit('update', (this.top - this.containerTop) + this.newXY.y)
     },
   },
   computed: {
