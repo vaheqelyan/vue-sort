@@ -11,7 +11,6 @@
 
 <script>
 const EDGE_THRESHOLD = 20
-const CARD_HEIGHT = 100
 
 export default {
   name: 'move',
@@ -24,6 +23,7 @@ export default {
     index: Number,
     newIndex: Number,
     activeIndex: Number,
+    moveInstance: Object
   },
   data: () => ({
     initXY: {
@@ -35,6 +35,7 @@ export default {
       y: 0,
     },
     height: 0,
+    width: 0,
     active: false,
     top: 0,
     left: 0,
@@ -53,7 +54,7 @@ export default {
   }),
   methods: {
     mousedown() {
-      const { clientX, clientY, target } = event
+      const { clientX, clientY, currentTarget } = event
 
       const container = this.container
 
@@ -62,8 +63,9 @@ export default {
         x: clientX,
         y: clientY,
       }
-      this.height = target.getBoundingClientRect().height
-      this.top = target.getBoundingClientRect().top
+      this.height = currentTarget.getBoundingClientRect().height
+      this.width = currentTarget.getBoundingClientRect().width
+      this.top = currentTarget.getBoundingClientRect().top
 
       this.containerTop = container.getBoundingClientRect().top
       this.containerBottom = container.getBoundingClientRect().bottom
@@ -74,6 +76,7 @@ export default {
         containerTop: this.containerTop,
         containerBottom: this.containerBottom,
         height: this.height,
+        width: this.width,
         top: this.top,
         initXY: this.initXY,
         edge: this.edge,
@@ -84,11 +87,11 @@ export default {
     enlargeEdges() {
       const topSensor = this.top < this.containerTop + EDGE_THRESHOLD
       const bottomSensor =
-        this.top + CARD_HEIGHT > this.containerBottom - EDGE_THRESHOLD
+        this.top + this.height > this.containerBottom - EDGE_THRESHOLD
 
       if (bottomSensor) {
         this.edge.bottom =
-          this.top + CARD_HEIGHT - (this.containerBottom - EDGE_THRESHOLD)
+          this.top + this.height - (this.containerBottom - EDGE_THRESHOLD)
       }
       if (topSensor) {
         this.edge.top = this.top - (this.containerTop + EDGE_THRESHOLD)
@@ -112,13 +115,13 @@ export default {
         this.index <= this.newIndex &&
         isDown
       ) {
-        return { transform: `translateY(${-CARD_HEIGHT}px)` }
+        return { transform: `translateY(${-this.moveInstance.height}px)` }
       } else if (
         this.index <= this.activeIndex &&
         this.index >= this.newIndex &&
         !isDown
       ) {
-        return { transform: `translateY(${CARD_HEIGHT}px)` }
+        return { transform: `translateY(${this.moveInstance.height}px)` }
       }
     },
   },

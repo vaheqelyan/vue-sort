@@ -5,9 +5,7 @@
 </template>
 
 <script>
-const CARD_WIDTH = 280
 const EDGE_THRESHOLD = 20
-const CARD_HEIGHT = 100
 
 function throttle(func, timeFrame) {
   var lastTime = 0
@@ -48,6 +46,8 @@ export default {
       top: 0,
       bottom: 0,
     },
+
+    width: 0,
   }),
   created() {
     window.addEventListener('mousemove', this.mousemove)
@@ -59,6 +59,7 @@ export default {
     this.edge = this.move.edge
     this.top = this.move.top
     this.height = this.move.height
+    this.width = this.move.width
   },
   methods: {
     mousemove({ clientX, clientY }) {
@@ -70,12 +71,12 @@ export default {
 
       const topSensor = this.top + y < this.containerTop + EDGE_THRESHOLD
       const bottomSensor =
-        this.top + y + CARD_HEIGHT > this.containerBottom - EDGE_THRESHOLD
+        this.top + y + this.height > this.containerBottom - EDGE_THRESHOLD
 
       const velocityBottom =
         (this.top +
           y +
-          CARD_HEIGHT -
+          this.height -
           (this.containerBottom + this.edge.bottom - EDGE_THRESHOLD)) /
         EDGE_THRESHOLD
 
@@ -136,8 +137,8 @@ export default {
         transform: `translate(${newXY.x}px, ${newXY.y}px)`,
         left: `${left}px`,
         top: `${top}px`,
-        width: `${CARD_WIDTH}px`,
-        height: `100px`,
+        width: `${this.width}px`,
+        height: `${this.height}px`,
         zIndex: 2,
       }
     },

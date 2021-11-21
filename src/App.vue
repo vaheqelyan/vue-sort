@@ -37,11 +37,22 @@ Array.prototype.move = function (from, to) {
 
 <template>
   <div class="container">
-    <DynamicVirtualList :list="items" v-slot:row="{row}" viewport>
-    <img width="100" height="100" :src="row.data.avatar" style="float: left"/>
-    <h2>#{{row.index}} {{row.data.name}}</h2>
-    <p>{{row.data.content}}</p>
-    </DynamicVirtualList>
+    <SortList
+        :list="items"
+        :row-height="100"
+        item-id="id"
+        @sort="onSort"
+        class="list"
+        >
+        <template v-slot:item="{ item, isActive }">
+          <div v-if="isActive">ACTIVE</div>
+          <div v-else>Hello {{ item.id }}</div>
+        </template>
+
+        <template v-slot:drag-element="{ item }">
+          <div>Hello {{ item.index }}</div>
+        </template>
+    </SortList>
   </div>
 </template>
 

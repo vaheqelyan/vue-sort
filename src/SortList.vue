@@ -12,6 +12,7 @@
             :index="getVirtualList.start + index"
             :active-index="activeIndex"
             :new-index="newIndex"
+            :moveInstance="moveInstance"
           >
             <slot
               name="item"
