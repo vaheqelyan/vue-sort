@@ -1,9 +1,7 @@
 <template>
   <div
     @mousedown="mousedown"
-    class="item"
     :style="getStyle"
-    :class="{ transition: hasStarted }"
   >
     <slot />
   </div>
@@ -23,7 +21,7 @@ export default {
     index: Number,
     newIndex: Number,
     activeIndex: Number,
-    moveInstance: Object
+    moveInstance: Object,
   },
   data: () => ({
     initXY: {
@@ -129,19 +127,8 @@ export default {
 </script>
 
 <style>
-.item {
-  height: 100px;
-  width: 100%;
-  user-select: none;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 20px;
-  position: static;
-  box-shadow: inset 0px 0px 4px red;
-}
 .transition {
-  transition: transform 0.2s;
+  transition: transform 2s;
 }
 .fixed {
   position: fixed;

@@ -160,9 +160,9 @@ export default {
       }
     },
 
-    getContainer () {
+    getContainer() {
       return this.viewport ? document.documentElement : this.$refs.container
-    }
+    },
   },
 }
 </script>

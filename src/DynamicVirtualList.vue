@@ -1,14 +1,45 @@
 <template>
-  <div class="vList" ref="viewport" @scroll="onScroll">
-    <div class="vList__content" :style="getContentStyle" ref="content">
-      <div v-for="row in visible" ref="row" class="vList__row" :key="row.key">
-        <slot name="row" v-bind:row="row" />
+  <div class="vList">
+    <div class="vList__inner" ref="viewport" @scroll="onScroll">
+      <div class="vList__content" :style="getContentStyle" ref="content">
+        <Move
+          v-for="(row, index) in visible"
+          :key="row.data[itemId]"
+          @start="onStartDrag"
+          :has-started="hasStarted"
+          :container="$refs.viewport"
+          :index="start + index"
+          :active-index="activeIndex"
+          :new-index="newIndex"
+          :move-instance="moveInstance"
+        >
+          <div class="vList__row">
+            <slot
+              name="item"
+              v-bind:item="row"
+              v-bind:is-active="start + index === activeIndex"
+            />
+          </div>
+        </Move>
       </div>
     </div>
+
+    <Dragger
+      v-if="hasStarted"
+      :move="moveInstance"
+      :container="getContainer"
+      @update="onUpdate"
+      @end="onEnd"
+    >
+      <slot name="drag-element" v-bind:item="list[activeIndex]" />
+    </Dragger>
   </div>
 </template>
 
 <script>
+import Move from './Move.vue'
+import Dragger from './Dragger.vue'
+
 const EVENT_OPTS = {
   passive: true,
   capture: true,
@@ -19,6 +50,11 @@ export default {
   props: {
     list: Array,
     viewport: Boolean,
+    itemId: String,
+  },
+  components: {
+    Move,
+    Dragger,
   },
   data: () => ({
     bottom: 0,
@@ -30,24 +66,20 @@ export default {
     rows: [],
     heightMap: [],
     averageHeight: 0,
+    // ---
+    hasStarted: false,
+    newIndex: -1,
+    activeIndex: -1,
+    moveInstance: {},
   }),
   mounted() {
     if (this.viewport) {
       this.resized()
-      //this.onScroll();
       window.addEventListener('resize', this.resized, EVENT_OPTS)
       window.addEventListener('scroll', this.onScroll, EVENT_OPTS)
     } else {
       this.viewportHeight = this.$refs.viewport.offsetHeight
     }
-
-    /*var ro = new ResizeObserver(entries => {
-  for (let entry of entries) {
-  }
-});
-
-// Observe one or multiple elements
-ro.observe(this.$refs.viewport);*/
 
     this.rows = this.$refs.content.getElementsByClassName('vList__row')
     this.initVisibleRows()
@@ -109,8 +141,6 @@ ro.observe(this.$refs.viewport);*/
 
       this.end = i
 
-      //console.log(this.heightMap.reduce((acc, value) => acc + value, 0))
-
       const remaining = listLength - this.end
       this.averageHeight = totalHeight / this.end
 
@@ -146,6 +176,58 @@ ro.observe(this.$refs.viewport);*/
       this.bottom = remaining * this.averageHeight
       this.heightMap.length = this.list.length
     },
+
+    onStartDrag(value) {
+      this.hasStarted = true
+      this.activeIndex = value.index
+      this.moveInstance = value
+    },
+
+    onUpdate(y) {
+      if (this.hasStarted) {
+        let scrollTop = 0
+        if (!this.viewport) {
+          scrollTop = this.$refs.viewport.scrollTop
+        } else {
+          scrollTop = Math.max(
+            0,
+            -this.$refs.viewport.getBoundingClientRect().top || 0
+          )
+        }
+
+        let offset = scrollTop + y
+
+        let newIndex
+
+        let top = this.top
+
+        for (let i = this.start; i < this.end; i++) {
+          const height = this.heightMap[i]
+
+          if (offset <= top + height) {
+            newIndex = i
+            break
+          }
+
+          top += height
+        }
+
+        this.newIndex = newIndex
+      }
+    },
+
+    onEnd() {
+      if (this.newIndex !== -1) {
+        this.$emit('sort', {
+          index: this.activeIndex,
+          newIndex: this.newIndex,
+        })
+      }
+
+      this.activeIndex = -1
+      this.newIndex = -1
+      this.hasStarted = false
+    },
   },
   computed: {
     visible() {
@@ -160,25 +242,28 @@ ro.observe(this.$refs.viewport);*/
         paddingBottom: `${this.bottom}px`,
       }
     },
+
+    getContainer() {
+      return this.viewport ? document.documentElement : this.$refs.viewport
+    },
   },
 }
 </script>
 
 <style>
 .vList {
+  height: 100%;
+}
+
+.vList__inner {
   position: relative;
-  /*overflow-y: auto;*/
+  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  display: block;
   height: 100%;
 }
 
 .vList__content,
 .vList__row {
   display: block;
-}
-
-.vList__row {
-  overflow: hidden;
 }
 </style>

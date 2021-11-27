@@ -1,5 +1,5 @@
 <template>
-  <div :style="getStyle" class="item fixed no-transition">
+  <div :style="getStyle" class="fixed no-transition">
     <slot />
   </div>
 </template>
@@ -23,7 +23,7 @@ export default {
   props: {
     move: Object,
     container: HTMLDivElement,
-    viewport: Boolean
+    viewport: Boolean,
   },
   data: () => ({
     initXY: {
@@ -124,7 +124,7 @@ export default {
     },
 
     update() {
-      this.$emit('update', (this.top - this.containerTop) + this.newXY.y)
+      this.$emit('update', this.top - this.containerTop + this.newXY.y)
     },
   },
   computed: {

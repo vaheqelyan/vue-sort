@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import SortList from './SortList.vue'
 import DynamicVirtualList from './DynamicVirtualList.vue'
-import items from './data.js';
+import dataItems from './data.js'
 
 const msg = ref('Hello World!')
 
@@ -13,6 +13,8 @@ function uid() {
   secondPart = ('000' + secondPart.toString(36)).slice(-3)
   return firstPart + secondPart
 }
+
+const items = ref(dataItems)
 
 /*const items = ref(
   new Array(20).fill().map((value, index) => ({
@@ -27,50 +29,50 @@ Array.prototype.move = function (from, to) {
   return this
 }
 
-/*const onSort = ({ index, newIndex }) => {
+const onSort = ({ index, newIndex }) => {
   let data = items.value.slice()
 
   data = data.move(index, newIndex)
   items.value = data
-}*/
+}
 </script>
 
 <template>
-  <div class="container">
-    <SortList
-        :list="items"
-        :row-height="100"
-        item-id="id"
-        @sort="onSort"
-        class="list"
-        >
-        <template v-slot:item="{ item, isActive }">
-          <div v-if="isActive">ACTIVE</div>
-          <div v-else>Hello {{ item.id }}</div>
-        </template>
+  <DynamicVirtualList
+    :list="items"
+    @sort="onSort"
+    item-id="key"
+    class="container"
+  >
+    <template v-slot:item="{ item, isActive }">
+      <div class="row">
+        <div v-if="isActive">ACTIVE</div>
+        <div v-else>Hello {{ item.data.key }}</div>
+      </div>
+    </template>
 
-        <template v-slot:drag-element="{ item }">
-          <div>Hello {{ item.index }}</div>
-        </template>
-    </SortList>
-  </div>
+    <template v-slot:drag-element="{ item }">
+      <div class="item">{{ item.key }}</div>
+    </template>
+  </DynamicVirtualList>
 </template>
 
 <style>
-.list {
+.container {
   height: 500px;
-  width: 300px;
-  overflow-y: scroll;
-  /*position: relative;
-  top: 100px;*/
+  width: 100px;
+  /*overflow-y: scroll;*/
+  position: relative;
 }
 
-.container {
-  margin-top: 100px;
-  /*height: 100%;*/
-  /*border-top: 1px solid #333;
-  border-bottom: 1px solid #333;
-  min-height: 200px;
-  height: calc(100vh - 15em);*/
+.item {
+  box-shadow: 0px 0px 5px 1px red inset;
+  user-select: none;
+  height: 100%;
+  user-select: none;
+}
+
+.row {
+  height: 100px;
 }
 </style>
