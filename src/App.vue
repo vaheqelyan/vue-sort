@@ -38,30 +38,31 @@ const onSort = ({ index, newIndex }) => {
 </script>
 
 <template>
-  <DynamicVirtualList
+  <SortList
     :list="items"
     @sort="onSort"
     item-id="key"
     class="container"
+    :row-height="100"
   >
     <template v-slot:item="{ item, isActive }">
       <div class="row">
         <div v-if="isActive">ACTIVE</div>
-        <div v-else>Hello {{ item.data.key }}</div>
+        <div v-else>Hello {{ item.key }}</div>
       </div>
     </template>
 
     <template v-slot:drag-element="{ item }">
       <div class="item">{{ item.key }}</div>
     </template>
-  </DynamicVirtualList>
+  </SortList>
 </template>
 
 <style>
 .container {
   height: 500px;
   width: 100px;
-  /*overflow-y: scroll;*/
+  overflow-y: scroll;
   position: relative;
 }
 

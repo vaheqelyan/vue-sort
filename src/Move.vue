@@ -1,8 +1,5 @@
 <template>
-  <div
-    @mousedown="mousedown"
-    :style="getStyle"
-  >
+  <div @mousedown="mousedown" :style="getStyle">
     <slot />
   </div>
 </template>
@@ -32,6 +29,7 @@ export default {
       x: 0,
       y: 0,
     },
+    targetBound: { width: 0, height: 0, top: 0, left: 0 },
     height: 0,
     width: 0,
     active: false,
@@ -54,28 +52,26 @@ export default {
     mousedown() {
       const { clientX, clientY, currentTarget } = event
 
-      const container = this.container
+      const { container } = this
 
       this.active = true
       this.initXY = {
         x: clientX,
         y: clientY,
       }
-      this.height = currentTarget.getBoundingClientRect().height
-      this.width = currentTarget.getBoundingClientRect().width
-      this.top = currentTarget.getBoundingClientRect().top
 
-      this.containerTop = container.getBoundingClientRect().top
-      this.containerBottom = container.getBoundingClientRect().bottom
+      this.targetBound = currentTarget.getBoundingClientRect()
+      const containerBound = container.getBoundingClientRect()
+
+      this.containerTop = containerBound.top
+      this.containerBottom = containerBound.bottom
 
       this.enlargeEdges()
 
       this.$emit('start', {
         containerTop: this.containerTop,
         containerBottom: this.containerBottom,
-        height: this.height,
-        width: this.width,
-        top: this.top,
+        targetBound: this.targetBound,
         initXY: this.initXY,
         edge: this.edge,
         index: this.index,
@@ -83,16 +79,17 @@ export default {
     },
 
     enlargeEdges() {
-      const topSensor = this.top < this.containerTop + EDGE_THRESHOLD
-      const bottomSensor =
-        this.top + this.height > this.containerBottom - EDGE_THRESHOLD
+      const { top, left, width, height } = this.targetBound
+
+      const topSensor = top < this.containerTop + EDGE_THRESHOLD
+      const bottomSensor = top + height > this.containerBottom - EDGE_THRESHOLD
 
       if (bottomSensor) {
         this.edge.bottom =
-          this.top + this.height - (this.containerBottom - EDGE_THRESHOLD)
+          top + height - (this.containerBottom - EDGE_THRESHOLD)
       }
       if (topSensor) {
-        this.edge.top = this.top - (this.containerTop + EDGE_THRESHOLD)
+        this.edge.top = top - (this.containerTop + EDGE_THRESHOLD)
       }
     },
   },
@@ -113,13 +110,17 @@ export default {
         this.index <= this.newIndex &&
         isDown
       ) {
-        return { transform: `translateY(${-this.moveInstance.height}px)` }
+        return {
+          transform: `translateY(${-this.moveInstance.targetBound.height}px)`,
+        }
       } else if (
         this.index <= this.activeIndex &&
         this.index >= this.newIndex &&
         !isDown
       ) {
-        return { transform: `translateY(${this.moveInstance.height}px)` }
+        return {
+          transform: `translateY(${this.moveInstance.targetBound.height}px)`,
+        }
       }
     },
   },

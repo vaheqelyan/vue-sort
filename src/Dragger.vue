@@ -34,6 +34,7 @@ export default {
       x: 0,
       y: 0,
     },
+    targetBound: { width: 0, height: 0, top: 0, left: 0 },
     // Autoscroll
     containerTop: 0,
     containerBottom: 0,
@@ -46,8 +47,6 @@ export default {
       top: 0,
       bottom: 0,
     },
-
-    width: 0,
   }),
   created() {
     window.addEventListener('mousemove', this.mousemove)
@@ -57,31 +56,32 @@ export default {
     this.containerBottom = this.move.containerBottom
     this.containerTop = this.move.containerTop
     this.edge = this.move.edge
-    this.top = this.move.top
-    this.height = this.move.height
-    this.width = this.move.width
+
+    this.targetBound = this.move.targetBound
   },
   methods: {
     mousemove({ clientX, clientY }) {
+      const { top, height } = this.targetBound
+
       this.newXY = {
         x: clientX - this.initXY.x,
         y: clientY - this.initXY.y,
       }
       const { x, y } = this.newXY
 
-      const topSensor = this.top + y < this.containerTop + EDGE_THRESHOLD
+      const topSensor = top + y < this.containerTop + EDGE_THRESHOLD
       const bottomSensor =
-        this.top + y + this.height > this.containerBottom - EDGE_THRESHOLD
+        top + y + height > this.containerBottom - EDGE_THRESHOLD
 
       const velocityBottom =
-        (this.top +
+        (top +
           y +
-          this.height -
+          height -
           (this.containerBottom + this.edge.bottom - EDGE_THRESHOLD)) /
         EDGE_THRESHOLD
 
       const velocityTop =
-        (this.containerTop + this.edge.top + EDGE_THRESHOLD - (this.top + y)) /
+        (this.containerTop + this.edge.top + EDGE_THRESHOLD - (top + y)) /
         EDGE_THRESHOLD
 
       this.sign = topSensor ? -1 : bottomSensor ? 1 : 0
@@ -124,12 +124,12 @@ export default {
     },
 
     update() {
-      this.$emit('update', this.top - this.containerTop + this.newXY.y)
+      this.$emit('update', this.targetBound.top - this.containerTop + this.newXY.y)
     },
   },
   computed: {
     getStyle() {
-      const { top, left } = this.move
+      const { top, left, width, height } = this.targetBound
 
       const { newXY } = this
 
@@ -137,8 +137,8 @@ export default {
         transform: `translate(${newXY.x}px, ${newXY.y}px)`,
         left: `${left}px`,
         top: `${top}px`,
-        width: `${this.width}px`,
-        height: `${this.height}px`,
+        width: `${width}px`,
+        height: `${height}px`,
         zIndex: 2,
       }
     },
