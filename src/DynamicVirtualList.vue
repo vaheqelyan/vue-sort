@@ -78,6 +78,7 @@ export default {
     newIndex: -1,
     activeIndex: -1,
     moveInstance: {},
+    offset: 0
   }),
   mounted() {
     if (this.viewport) {
@@ -108,6 +109,8 @@ export default {
           -this.$refs.viewport.getBoundingClientRect().top || 0
         )
       }
+
+      this.offset = scrollTop
 
       const listLength = this.list.length
 
@@ -192,17 +195,7 @@ export default {
 
     onUpdate (y) {
       if (this.hasStarted) {
-        let scrollTop = 0
-        if (!this.viewport) {
-          scrollTop = this.$refs.viewport.scrollTop
-        } else {
-          scrollTop = Math.max(
-            0,
-            -this.$refs.viewport.getBoundingClientRect().top || 0
-          )
-        }
-
-        let offset = scrollTop + y + this.moveInstance.targetBound.height
+        let offset = this.offset + y + this.moveInstance.targetBound.height
 
         let newIndex
 
