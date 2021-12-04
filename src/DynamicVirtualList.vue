@@ -12,6 +12,7 @@
           :active-index="activeIndex"
           :new-index="newIndex"
           :move-instance="moveInstance"
+          :direction="direction"
         >
           <div class="vList__row">
             <slot
@@ -28,6 +29,7 @@
       v-if="hasStarted"
       :move="moveInstance"
       :container="getContainer"
+      :direction="direction"
       @update="onUpdate"
       @end="onEnd"
     >
@@ -39,6 +41,7 @@
 <script>
 import Move from './Move.vue'
 import Dragger from './Dragger.vue'
+import { DIRECTION } from './constants/props'
 
 const EVENT_OPTS = {
   passive: true,
@@ -51,6 +54,10 @@ export default {
     list: Array,
     viewport: Boolean,
     itemId: String,
+    direction: {
+      type: String,
+      default: DIRECTION.COLUMN
+    }
   },
   components: {
     Move,
@@ -195,7 +202,9 @@ export default {
           )
         }
 
-        let offset = scrollTop + y
+        const { height } = this.moveInstance.targetBound
+
+        let offset = scrollTop + y + (height)
 
         let newIndex
 
