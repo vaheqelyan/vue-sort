@@ -1,5 +1,5 @@
 <template>
-  <div @mousedown="mousedown" :style="getStyle">
+  <div @mousedown="mousedown" :style="getStyle" :class="{ 'no-select': hasStarted }">
     <slot />
   </div>
 </template>
@@ -36,7 +36,6 @@ export default {
     containerBound: { width: 0, height: 0, top: 0, left: 0 },
     height: 0,
     width: 0,
-    active: false,
     top: 0,
     left: 0,
     // Autoscroll
@@ -56,7 +55,6 @@ export default {
 
       const { container } = this
 
-      this.active = true
       this.initXY = {
         x: clientX,
         y: clientY,
@@ -159,5 +157,9 @@ export default {
 }
 .fixed {
   position: fixed;
+}
+
+.no-select {
+  user-select: none;
 }
 </style>
