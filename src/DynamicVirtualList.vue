@@ -190,7 +190,7 @@ export default {
       this.moveInstance = value
     },
 
-    onUpdate(y) {
+    onUpdate (y) {
       if (this.hasStarted) {
         let scrollTop = 0
         if (!this.viewport) {
@@ -202,9 +202,7 @@ export default {
           )
         }
 
-        const { height } = this.moveInstance.targetBound
-
-        let offset = scrollTop + y + (height)
+        let offset = scrollTop + y + this.moveInstance.targetBound.height
 
         let newIndex
 
@@ -212,8 +210,9 @@ export default {
 
         for (let i = this.start; i < this.end; i++) {
           const height = this.heightMap[i]
+          const nextHeight = this.heightMap[i+1] || 0
 
-          if (offset <= top + height) {
+          if (offset <= (top + height + (nextHeight / 2))) {
             newIndex = i
             break
           }
