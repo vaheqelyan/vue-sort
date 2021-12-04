@@ -5,6 +5,8 @@
 </template>
 
 <script>
+import { DIRECTION } from './constants/props'
+
 const EDGE_THRESHOLD = 20
 
 export default {
@@ -19,6 +21,7 @@ export default {
     newIndex: Number,
     activeIndex: Number,
     moveInstance: Object,
+    direction: String,
   },
   data: () => ({
     initXY: {
@@ -30,14 +33,13 @@ export default {
       y: 0,
     },
     targetBound: { width: 0, height: 0, top: 0, left: 0 },
+    containerBound: { width: 0, height: 0, top: 0, left: 0 },
     height: 0,
     width: 0,
     active: false,
     top: 0,
     left: 0,
     // Autoscroll
-    containerTop: 0,
-    containerBottom: 0,
     oldY: 0,
     t: 0,
     vel: 1,
@@ -61,17 +63,14 @@ export default {
       }
 
       this.targetBound = currentTarget.getBoundingClientRect()
-      const containerBound = container.getBoundingClientRect()
 
-      this.containerTop = containerBound.top
-      this.containerBottom = containerBound.bottom
+      this.containerBound = container.getBoundingClientRect()
 
       this.enlargeEdges()
 
       this.$emit('start', {
-        containerTop: this.containerTop,
-        containerBottom: this.containerBottom,
         targetBound: this.targetBound,
+        containerBound: this.containerBound,
         initXY: this.initXY,
         edge: this.edge,
         index: this.index,
@@ -79,17 +78,21 @@ export default {
     },
 
     enlargeEdges() {
-      const { top, left, width, height } = this.targetBound
+      const height = this.targetBound[this.getProp.size]
+      const top = this.targetBound[this.getProp.position]
 
-      const topSensor = top < this.containerTop + EDGE_THRESHOLD
-      const bottomSensor = top + height > this.containerBottom - EDGE_THRESHOLD
+      const containerTop = this.containerBound[this.getProp.position]
+      const containerBottom = this.containerBound[this.getProp.containerPosition]
+
+      const topSensor = top < containerTop + EDGE_THRESHOLD
+      const bottomSensor = top + height > containerBottom - EDGE_THRESHOLD
 
       if (bottomSensor) {
         this.edge.bottom =
-          top + height - (this.containerBottom - EDGE_THRESHOLD)
+          top + height - (containerBottom - EDGE_THRESHOLD)
       }
       if (topSensor) {
-        this.edge.top = top - (this.containerTop + EDGE_THRESHOLD)
+        this.edge.top = top - (containerTop + EDGE_THRESHOLD)
       }
     },
   },
@@ -103,7 +106,11 @@ export default {
       )
         return
 
+      const { translateAxis, size } = this.getProp
+      const translateSize = this.moveInstance.targetBound[size]
+
       const isDown = Math.sign(this.newIndex - this.activeIndex) > 0
+
 
       if (
         this.index >= this.activeIndex &&
@@ -111,7 +118,7 @@ export default {
         isDown
       ) {
         return {
-          transform: `translateY(${-this.moveInstance.targetBound.height}px)`,
+          transform: `translate${translateAxis}(${-translateSize}px)`,
         }
       } else if (
         this.index <= this.activeIndex &&
@@ -119,10 +126,29 @@ export default {
         !isDown
       ) {
         return {
-          transform: `translateY(${this.moveInstance.targetBound.height}px)`,
+          transform: `translate${translateAxis}(${translateSize}px)`,
         }
       }
     },
+
+    getProp () {
+      const propMap = {
+        [DIRECTION.ROW]: {
+          translateAxis: 'X',
+          size: 'width',
+          position: 'left',
+          containerPosition: 'right'
+        },
+        [DIRECTION.COLUMN]: {
+          translateAxis: 'Y',
+          size: 'height',
+          position: 'top',
+          containerPosition: 'bottom'
+        }
+      }
+
+      return propMap[this.direction]
+    }
   },
 }
 </script>

@@ -2,7 +2,7 @@
   <div>
     <div class="scrollList" ref="container" @scroll="onScroll" v-bind="$attrs">
       <div class="scrollList__inner" :style="getContainerHeight.style">
-        <div class="scrollList__content" :style="getVirtualList.style">
+        <div class="scrollList__content" :class="getDirectionClass" :style="getVirtualList.style">
           <move
             v-for="(item, index) in getVirtualList.selection"
             :key="item[itemId]"
@@ -13,6 +13,7 @@
             :active-index="activeIndex"
             :new-index="newIndex"
             :moveInstance="moveInstance"
+            :direction="direction"
           >
             <slot
               name="item"
@@ -28,6 +29,7 @@
       v-if="start"
       :move="moveInstance"
       :container="getContainer"
+      :direction="direction"
       @update="onUpdate"
       @end="onEnd"
     >
@@ -39,6 +41,7 @@
 <script>
 import Move from './Move.vue'
 import Dragger from './Dragger.vue'
+import { DIRECTION } from './constants/props'
 
 const EVENT_OPTS = {
   passive: true,
@@ -60,6 +63,10 @@ export default {
       type: Number,
       default: 1,
     },
+    direction: {
+      type: String,
+      default: DIRECTION.COLUMN
+    }
   },
   inheritAttrs: false,
   components: {
@@ -75,10 +82,11 @@ export default {
     newIndex: -1,
   }),
   mounted() {
+    const { viewportSize, windowSize } = this.getProp
     if (!this.viewport) {
-      this.height = this.$refs.container.offsetHeight
+      this.height = this.$refs.container[viewportSize]
     } else {
-      this.height = window.innerHeight || document.documentElement.offsetHeight
+      this.height = window[windowSize] || document.documentElement[viewportSize]
 
       window.addEventListener('scroll', this.onScroll, EVENT_OPTS)
       window.addEventListener('resize', this.onResize, EVENT_OPTS)
@@ -120,7 +128,7 @@ export default {
     },
     onScroll() {
       if (!this.viewport) {
-        this.offset = this.$refs.container.scrollTop
+        this.offset = this.$refs.container[this.getProp.scroll]
       } else {
         let offset = Math.max(
           0,
@@ -146,16 +154,16 @@ export default {
 
       let selection = this.list.slice(start, end)
 
-      return { selection, style: { top: `${start * this.rowHeight}px` }, start }
+      return { selection, style: { [this.getProp.position]: `${start * this.rowHeight}px` }, start }
     },
 
     getContainerHeight() {
-      let height = this.list.length * this.rowHeight
+      const size = this.list.length * this.rowHeight
 
       return {
-        height,
+        size,
         style: {
-          height: `${height}px`,
+          [this.getDirectionSize ]: `${size}px`,
         },
       }
     },
@@ -163,6 +171,43 @@ export default {
     getContainer() {
       return this.viewport ? document.documentElement : this.$refs.container
     },
+
+    getDirectionSize () {
+      const classMap = {
+        [DIRECTION.ROW]: 'width',
+        [DIRECTION.COLUMN]: 'height'
+      }
+
+      return classMap[this.direction]
+    },
+
+    getDirectionClass () {
+      const classMap = {
+        [DIRECTION.ROW]: 'scrollList__content--row',
+        [DIRECTION.COLUMN]: 'scrollList__content--col'
+      }
+
+      return classMap[this.direction]
+    },
+
+    getProp () {
+      const classMap = {
+        [DIRECTION.ROW]: {
+          scroll: 'scrollLeft',
+          position: 'left',
+          viewportSize: 'offsetWidth',
+          windowSize: 'innerWidth'
+        },
+        [DIRECTION.COLUMN]: {
+          scroll: 'scrollTop',
+          position: 'top',
+          viewportSize: 'offsetHeight',
+          windowSize: 'innerHeight'
+        }
+      }
+
+      return classMap[this.direction]
+    }
   },
 }
 </script>
@@ -183,5 +228,14 @@ export default {
   height: 100%;
   width: 100%;
   overflow: visible;
+  display: flex;
+}
+
+.scrollList__content--row {
+  flex-direction: row;
+}
+
+.scrollList__content--col {
+  flex-direction: column;
 }
 </style>

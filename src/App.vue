@@ -44,6 +44,7 @@ const onSort = ({ index, newIndex }) => {
     item-id="key"
     class="container"
     :row-height="100"
+    direction="row"
   >
     <template v-slot:item="{ item, isActive }">
       <div class="row">
@@ -60,10 +61,11 @@ const onSort = ({ index, newIndex }) => {
 
 <style>
 .container {
-  height: 500px;
-  width: 100px;
-  overflow-y: scroll;
+  height: 120px;
+  width: 300px;
+  overflow-x: scroll;
   position: relative;
+  box-shadow: 0px 0px 5px 1px red inset;
 }
 
 .item {
@@ -74,6 +76,8 @@ const onSort = ({ index, newIndex }) => {
 }
 
 .row {
+  background: #fff;
   height: 100px;
+  width: 100px;
 }
 </style>

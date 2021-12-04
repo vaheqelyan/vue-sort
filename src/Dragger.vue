@@ -5,6 +5,8 @@
 </template>
 
 <script>
+import { DIRECTION } from './constants/props'
+
 const EDGE_THRESHOLD = 20
 
 function throttle(func, timeFrame) {
@@ -24,6 +26,7 @@ export default {
     move: Object,
     container: HTMLDivElement,
     viewport: Boolean,
+    direction: String
   },
   data: () => ({
     initXY: {
@@ -35,9 +38,8 @@ export default {
       y: 0,
     },
     targetBound: { width: 0, height: 0, top: 0, left: 0 },
+    containerBound: { width: 0, height: 0, top: 0, left: 0 },
     // Autoscroll
-    containerTop: 0,
-    containerBottom: 0,
     oldY: 0,
     t: 0,
     vel: 1,
@@ -53,35 +55,39 @@ export default {
     window.addEventListener('mouseup', this.mouseup)
 
     this.initXY = this.move.initXY
-    this.containerBottom = this.move.containerBottom
-    this.containerTop = this.move.containerTop
     this.edge = this.move.edge
 
+    this.containerBound = this.move.containerBound
     this.targetBound = this.move.targetBound
   },
   methods: {
     mousemove({ clientX, clientY }) {
-      const { top, height } = this.targetBound
+      const top = this.targetBound[this.getProp.position]
+      const height = this.targetBound[this.getProp.size]
+
+      const containerTop = this.containerBound[this.getProp.position]
+      const containerBottom = this.containerBound[this.getProp.containerSize]
 
       this.newXY = {
         x: clientX - this.initXY.x,
         y: clientY - this.initXY.y,
       }
-      const { x, y } = this.newXY
 
-      const topSensor = top + y < this.containerTop + EDGE_THRESHOLD
+      const y = this.newXY[this.getProp.axis]
+
+      const topSensor = top + y < containerTop + EDGE_THRESHOLD
       const bottomSensor =
-        top + y + height > this.containerBottom - EDGE_THRESHOLD
+        top + y + height > containerBottom - EDGE_THRESHOLD
 
       const velocityBottom =
         (top +
           y +
           height -
-          (this.containerBottom + this.edge.bottom - EDGE_THRESHOLD)) /
+          (containerBottom + this.edge.bottom - EDGE_THRESHOLD)) /
         EDGE_THRESHOLD
 
       const velocityTop =
-        (this.containerTop + this.edge.top + EDGE_THRESHOLD - (top + y)) /
+        (containerTop + this.edge.top + EDGE_THRESHOLD - (top + y)) /
         EDGE_THRESHOLD
 
       this.sign = topSensor ? -1 : bottomSensor ? 1 : 0
@@ -95,7 +101,7 @@ export default {
         if (!this.intervalId) {
           this.intervalId = setInterval(() => {
             this.update()
-            this.container.scrollTop += 2 * this.vel * this.sign
+            this.container[this.getProp.scroll] += 2 * this.vel * this.sign
           }, 10)
         }
       } else if (this.intervalId) {
@@ -124,7 +130,9 @@ export default {
     },
 
     update() {
-      this.$emit('update', this.targetBound.top - this.containerTop + this.newXY.y)
+      const { position, axis } = this.getProp
+
+      this.$emit('update', this.targetBound[position] - this.containerBound[position] + this.newXY[axis])
     },
   },
   computed: {
@@ -142,6 +150,27 @@ export default {
         zIndex: 2,
       }
     },
+
+    getProp () {
+      const propMap = {
+        [DIRECTION.ROW]: {
+          position: 'left',
+          size: 'width',
+          axis: 'x',
+          scroll: 'scrollLeft',
+          containerSize: 'right'
+        },
+        [DIRECTION.COLUMN]: {
+          position: 'top',
+          axis: 'y',
+          size: 'height',
+          scroll: 'scrollTop',
+          containerSize: 'bottom'
+        }
+      }
+
+      return propMap[this.direction]
+    }
   },
 }
 </script>
