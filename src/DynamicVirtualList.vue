@@ -213,7 +213,9 @@ export default {
           top += height
         }
 
-        this.newIndex = newIndex
+        if (newIndex !== undefined) {
+          this.newIndex = newIndex
+        }
       }
     },
 
