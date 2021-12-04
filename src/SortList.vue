@@ -102,7 +102,7 @@ export default {
 
     onUpdate(y) {
       if (this.start) {
-        let newIndex = Math.floor((this.offset + y) / this.rowHeight)
+        let newIndex = Math.floor((this.offset + y + (this.rowHeight / 2)) / this.rowHeight)
 
         newIndex = Math.min(Math.max(0, newIndex), this.list.length - 1)
 
