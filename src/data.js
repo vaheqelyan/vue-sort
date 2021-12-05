@@ -29,7 +29,7 @@ const avatars = [
 	'https://images.pexels.com/photos/532310/pexels-photo-532310.jpeg?auto=compress&cs=tinysrgb&h=75'
 ];
 
-export default fill(100, (i) => {
+export default fill(30, (i) => {
 	return {
 		key: `_${i}`,
 		name: getName(),

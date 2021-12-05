@@ -1,5 +1,9 @@
 <template>
-  <div @mousedown="mousedown" :style="getStyle" :class="{ 'no-select': hasStarted }">
+  <div 
+    @mousedown="mousedown" 
+    :style="getStyle" 
+    :class="{ 'transition no-select': hasStarted }"
+  >
     <slot />
   </div>
 </template>
@@ -153,8 +157,9 @@ export default {
 
 <style>
 .transition {
-  transition: transform 2s;
+  transition: transform 0.2s;
 }
+
 .fixed {
   position: fixed;
 }

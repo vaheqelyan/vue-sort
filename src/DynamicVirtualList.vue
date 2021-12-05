@@ -43,6 +43,11 @@ import Move from './Move.vue'
 import Dragger from './Dragger.vue'
 import { DIRECTION } from './constants/props'
 
+Array.prototype.move = function (from, to) {
+  this.splice(to, 0, this.splice(from, 1)[0])
+  return this
+}
+
 const EVENT_OPTS = {
   passive: true,
   capture: true,
@@ -56,8 +61,8 @@ export default {
     itemId: String,
     direction: {
       type: String,
-      default: DIRECTION.COLUMN
-    }
+      default: DIRECTION.COLUMN,
+    },
   },
   components: {
     Move,
@@ -78,7 +83,7 @@ export default {
     newIndex: -1,
     activeIndex: -1,
     moveInstance: {},
-    offset: 0
+    offset: 0,
   }),
   mounted() {
     if (this.viewport) {
@@ -100,6 +105,7 @@ export default {
       }
     },
     async onScroll() {
+      if (this.stop) return
       let scrollTop = 0
       if (!this.viewport) {
         scrollTop = this.$refs.viewport.scrollTop
@@ -123,6 +129,7 @@ export default {
 
         if (totalHeight + rowHeight > scrollTop) {
           this.start = i
+
           this.top = totalHeight
           break
         }
@@ -193,7 +200,7 @@ export default {
       this.moveInstance = value
     },
 
-    onUpdate (y) {
+    onUpdate(y) {
       if (this.hasStarted) {
         let offset = this.offset + y + this.moveInstance.targetBound.height
 
@@ -203,9 +210,9 @@ export default {
 
         for (let i = this.start; i < this.end; i++) {
           const height = this.heightMap[i]
-          const nextHeight = this.heightMap[i+1] || 0
+          const nextHeight = this.heightMap[i + 1] || 0
 
-          if (offset <= (top + height + (nextHeight / 2))) {
+          if (offset <= top + height + nextHeight / 2) {
             newIndex = i
             break
           }
@@ -221,11 +228,21 @@ export default {
 
     onEnd() {
       if (this.newIndex !== -1) {
+        this.save = {
+          index: this.activeIndex,
+          newIndex: this.newIndex,
+        }
+        let heightMap = this.heightMap.slice()
+
+        this.heightMap = heightMap.move(this.activeIndex, this.newIndex)
+
         this.$emit('sort', {
           index: this.activeIndex,
           newIndex: this.newIndex,
         })
       }
+
+      this.onScroll()
 
       this.activeIndex = -1
       this.newIndex = -1
