@@ -1,7 +1,14 @@
 <template>
   <div class="vList">
-    <div class="vList__inner" ref="viewport" @scroll="onScroll">
-      <div class="vList__content" :style="getContentStyle" ref="content">
+    <div
+      class="vList__inner"
+      :class="getProp.innerClass"
+      ref="viewport"
+      @scroll="onScroll"
+    >
+      <div :style="{ flexBasis: `${top}px`, flexShrink: 0 }"></div>
+
+      <div class="vList__content" :class="getProp.contentClass" ref="content">
         <Move
           v-for="(row, index) in visible"
           :key="row.data[itemId]"
@@ -13,16 +20,17 @@
           :new-index="newIndex"
           :move-instance="moveInstance"
           :direction="direction"
+          class="vList__row"
         >
-          <div class="vList__row">
-            <slot
-              name="item"
-              v-bind:item="row"
-              v-bind:is-active="start + index === activeIndex"
-            />
-          </div>
+          <slot
+            name="item"
+            v-bind:item="row"
+            v-bind:is-active="start + index === activeIndex"
+          />
         </Move>
       </div>
+
+      <div :style="{ flexBasis: `${bottom}px`, flexShrink: 0 }"></div>
     </div>
 
     <Dragger
@@ -35,6 +43,8 @@
     >
       <slot name="drag-element" v-bind:item="list[activeIndex]" />
     </Dragger>
+
+    <div ref="logger"></div>
   </div>
 </template>
 
@@ -74,7 +84,6 @@ export default {
     start: 0,
     end: 0,
     viewportHeight: 0,
-    itemHeight: 0,
     rows: [],
     heightMap: [],
     averageHeight: 0,
@@ -91,7 +100,7 @@ export default {
       window.addEventListener('resize', this.resized, EVENT_OPTS)
       window.addEventListener('scroll', this.onScroll, EVENT_OPTS)
     } else {
-      this.viewportHeight = this.$refs.viewport.offsetHeight
+      this.viewportHeight = this.$refs.viewport[this.getProp.offsetSize]
     }
 
     this.rows = this.$refs.content.getElementsByClassName('vList__row')
@@ -105,10 +114,9 @@ export default {
       }
     },
     async onScroll() {
-      if (this.stop) return
       let scrollTop = 0
       if (!this.viewport) {
-        scrollTop = this.$refs.viewport.scrollTop
+        scrollTop = this.$refs.viewport[this.getProp.scroll]
       } else {
         scrollTop = Math.max(
           0,
@@ -142,12 +150,16 @@ export default {
         if (this.heightMap[i]) {
           totalHeight += this.heightMap[i]
         } else if (this.rows[i]) {
-          totalHeight += this.rows[i].offsetHeight
+          totalHeight += this.rows[i][this.getProp.offsetSize]
         } else {
           this.end = i + 1
           await this.$nextTick()
-          const rowOffsetHeight = this.rows[i - this.start].offsetHeight
+
+          const rowOffsetHeight =
+            this.rows[i - this.start][this.getProp.offsetSize]
+
           totalHeight += rowOffsetHeight
+
           this.heightMap[i] = rowOffsetHeight
         }
 
@@ -164,7 +176,7 @@ export default {
       this.bottom = remaining * this.averageHeight
     },
     async initVisibleRows() {
-      const { scrollTop } = this.$refs.viewport
+      const scrollTop = this.$refs.viewport[this.getProp.scroll]
 
       await this.$nextTick()
 
@@ -180,8 +192,10 @@ export default {
           row = this.rows[i - this.start]
         }
 
-        const row_height = (this.heightMap[i] =
-          this.itemHeight || row.offsetHeight)
+        const rowOffsetHeight = row[this.getProp.offsetSize]
+
+        const row_height = (this.heightMap[i] = rowOffsetHeight)
+
         content_height += row_height
 
         i += 1
@@ -202,11 +216,15 @@ export default {
 
     onUpdate(y) {
       if (this.hasStarted) {
-        let offset = this.offset + y + this.moveInstance.targetBound.height
+        const targetHeight =
+          this.moveInstance.targetBound[this.getProp.targetSize]
+        let offset = this.offset + y + targetHeight
 
         let newIndex
 
         let top = this.top
+
+        this.$refs.logger.innerHTML = `<b>${offset}</b>`
 
         for (let i = this.start; i < this.end; i++) {
           const height = this.heightMap[i]
@@ -257,14 +275,41 @@ export default {
       }))
     },
     getContentStyle() {
+      const { paddingTop, paddingBottom } = this.getProp
+
       return {
-        paddingTop: `${this.top}px`,
-        paddingBottom: `${this.bottom}px`,
+        [paddingTop]: `${this.top}px`,
+        [paddingBottom]: `${this.bottom}px`,
       }
     },
 
     getContainer() {
       return this.viewport ? document.documentElement : this.$refs.viewport
+    },
+
+    getProp() {
+      const classMap = {
+        [DIRECTION.ROW]: {
+          innerClass: 'vList__inner--row',
+          contentClass: 'vList__content--row',
+          offsetSize: 'offsetWidth',
+          paddingTop: 'paddingLeft',
+          paddingBottom: 'paddingRight',
+          scroll: 'scrollLeft',
+          targetSize: 'width',
+        },
+        [DIRECTION.COLUMN]: {
+          innerClass: 'vList__inner--column',
+          contentClass: 'vList__content--column',
+          offsetSize: 'offsetHeight',
+          paddingTop: 'paddingTop',
+          paddingBottom: 'paddingBottom',
+          scroll: 'scrollTop',
+          targetSize: 'height',
+        },
+      }
+
+      return classMap[this.direction]
     },
   },
 }
@@ -276,14 +321,38 @@ export default {
 }
 
 .vList__inner {
-  position: relative;
-  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  position: relative;
+  width: 100%;
   height: 100%;
+  display: flex;
 }
 
-.vList__content,
+.vList__inner--column {
+  overflow-y: scroll;
+  flex-direction: column;
+}
+
+.vList__inner--row {
+  overflow-x: scroll;
+  flex-direction: row;
+}
+
+.vList__content {
+  display: flex;
+  flex-shrink: 0;
+}
+
 .vList__row {
-  display: block;
+  flex-shrink: 0;
+  max-width: 100px;
+}
+
+.vList__content--row {
+  flex-direction: row;
+}
+
+.vList__content--column {
+  flex-direction: column;
 }
 </style>

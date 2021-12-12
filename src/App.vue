@@ -38,7 +38,7 @@ const onSort = ({ index, newIndex }) => {
 </script>
 
 <template>
-  <SortList
+  <DynamicVirtualList
     :list="items"
     @sort="onSort"
     item-id="key"
@@ -47,25 +47,41 @@ const onSort = ({ index, newIndex }) => {
     direction="row"
   >
     <template v-slot:item="{ item, isActive }">
-      <div class="row">
-        <div v-if="isActive">ACTIVE</div>
-        <div v-else>Hello {{ item.key }}</div>
+      <div class="row" :class="{ invisible: isActive }">
+        {{ item.data.key }} {{ item.data.content }}
       </div>
     </template>
 
     <template v-slot:drag-element="{ item }">
       <div class="item">{{ item.key }}</div>
     </template>
-  </SortList>
+  </DynamicVirtualList>
+  <!--<SortList
+    :list="items"
+    @sort="onSort"
+    item-id="key"
+    class="container"
+    :row-height="100"
+  >
+    <template v-slot:item="{ item, isActive }">
+      <div class="row">
+        <div v-if="isActive" class="row--active">
+          Hello {{ item.key }} 
+        </div>
+        <div v-else>Helo {{ item.key }}</div>
+      </div>
+    </template>
+
+    <template v-slot:drag-element="{ item }">
+      <div class="item">{{ item.key }}</div>
+    </template>
+  </SortList>-->
 </template>
 
 <style>
 .container {
-  height: 120px;
-  width: 300px;
-  overflow-x: scroll;
-  position: relative;
-  box-shadow: 0px 0px 5px 1px red inset;
+  height: 400px;
+  width: 500px;
 }
 
 .item {
@@ -77,7 +93,16 @@ const onSort = ({ index, newIndex }) => {
 
 .row {
   background: #fff;
-  height: 100px;
-  width: 100px;
+  /*max-width: 200px;*/
+  /*height: 100px;*/
+  box-shadow: 0px 0px 5px red inset;
+}
+
+.invisible {
+  visibility: hidden;
+}
+
+.row--active {
+  visibility: hidden;
 }
 </style>
