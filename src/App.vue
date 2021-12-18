@@ -38,7 +38,7 @@ const onSort = ({ index, newIndex }) => {
 </script>
 
 <template>
-  <DynamicVirtualList
+  <!--<DynamicVirtualList
     :list="items"
     @sort="onSort"
     item-id="key"
@@ -55,8 +55,8 @@ const onSort = ({ index, newIndex }) => {
     <template v-slot:drag-element="{ item }">
       <div class="item">{{ item.key }}</div>
     </template>
-  </DynamicVirtualList>
-  <!--<SortList
+  </DynamicVirtualList>-->
+  <SortList
     :list="items"
     @sort="onSort"
     item-id="key"
@@ -75,7 +75,7 @@ const onSort = ({ index, newIndex }) => {
     <template v-slot:drag-element="{ item }">
       <div class="item">{{ item.key }}</div>
     </template>
-  </SortList>-->
+  </SortList>
 </template>
 
 <style>
@@ -94,7 +94,7 @@ const onSort = ({ index, newIndex }) => {
 .row {
   background: #fff;
   /*max-width: 200px;*/
-  /*height: 100px;*/
+  height: 100px;
   box-shadow: 0px 0px 5px red inset;
 }
 

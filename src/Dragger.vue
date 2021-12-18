@@ -4,8 +4,9 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { DIRECTION } from './constants/props'
+import { onMounted, ref, provide, reactive, computed } from 'vue'
 
 const EDGE_THRESHOLD = 20
 
@@ -20,159 +21,157 @@ function throttle(func, timeFrame) {
   }
 }
 
-export default {
-  name: 'dragger',
-  props: {
-    move: Object,
-    container: HTMLDivElement,
-    viewport: Boolean,
-    direction: String
-  },
-  data: () => ({
-    initXY: {
-      x: 0,
-      y: 0,
-    },
-    newXY: {
-      x: 0,
-      y: 0,
-    },
-    targetBound: { width: 0, height: 0, top: 0, left: 0 },
-    containerBound: { width: 0, height: 0, top: 0, left: 0 },
-    // Autoscroll
-    oldY: 0,
-    t: 0,
-    vel: 1,
-    sign: 0,
-    intervalId: false,
-    edge: {
-      top: 0,
-      bottom: 0,
-    },
-  }),
-  created() {
-    window.addEventListener('mousemove', this.mousemove)
-    window.addEventListener('mouseup', this.mouseup)
+const props = defineProps({
+  move: Object,
+  container: HTMLDivElement,
+  viewport: Boolean,
+  direction: String,
+})
 
-    this.initXY = this.move.initXY
-    this.edge = this.move.edge
+let initXY = reactive({
+  x: 0,
+  y: 0,
+})
 
-    this.containerBound = this.move.containerBound
-    this.targetBound = this.move.targetBound
-  },
-  methods: {
-    mousemove({ clientX, clientY }) {
-      const top = this.targetBound[this.getProp.position]
-      const height = this.targetBound[this.getProp.size]
+let newXY = reactive({
+  x: 0,
+  y: 0,
+})
 
-      const containerTop = this.containerBound[this.getProp.position]
-      const containerBottom = this.containerBound[this.getProp.containerSize]
+let targetBound = reactive({ width: 0, height: 0, top: 0, left: 0 })
+let containerBound = reactive({ width: 0, height: 0, top: 0, left: 0 })
 
-      this.newXY = {
-        x: clientX - this.initXY.x,
-        y: clientY - this.initXY.y,
-      }
+const height = ref(0)
+const width = ref(0)
+const top = ref(0)
+const left = ref(0)
+// Autoscroll
+let oldY = ref(0)
+let t = ref(0)
+let vel = ref(1)
+let sign = ref(0)
+let intervalId = ref(false)
 
-      const y = this.newXY[this.getProp.axis]
+let edge = reactive({
+  top: 0,
+  bottom: 0,
+})
 
-      const topSensor = top + y < containerTop + EDGE_THRESHOLD
-      const bottomSensor =
-        top + y + height > containerBottom - EDGE_THRESHOLD
+const emit = defineEmits(['update', 'end'])
 
-      const velocityBottom =
-        (top +
-          y +
-          height -
-          (containerBottom + this.edge.bottom - EDGE_THRESHOLD)) /
-        EDGE_THRESHOLD
+onMounted(() => {
+  window.addEventListener('mousemove', mousemove)
+  window.addEventListener('mouseup', mouseup)
 
-      const velocityTop =
-        (containerTop + this.edge.top + EDGE_THRESHOLD - (top + y)) /
-        EDGE_THRESHOLD
+  initXY = reactive(props.move.initXY)
+  edge = reactive(props.move.edge)
 
-      this.sign = topSensor ? -1 : bottomSensor ? 1 : 0
+  containerBound = reactive(props.move.containerBound)
 
-      this.vel =
-        this.sign === -1
-          ? Math.max(0, velocityTop)
-          : Math.max(0, velocityBottom)
+  targetBound = reactive(props.move.targetBound)
+})
 
-      if (topSensor || bottomSensor) {
-        if (!this.intervalId) {
-          this.intervalId = setInterval(() => {
-            this.update()
-            this.container[this.getProp.scroll] += 2 * this.vel * this.sign
-          }, 10)
-        }
-      } else if (this.intervalId) {
-        // Clear timer when auto scroll is not true
-        clearInterval(this.intervalId)
-        this.intervalId = false
-        this.sign = 0
-        this.vel = 1
-        this.edge = { top: 0, bottom: 0 }
-      } else {
-        this.update()
-      }
-    },
+const mousemove = ({ clientX, clientY }) => {
+  const top = targetBound[getProp.value.position]
+  const height = targetBound[getProp.value.size]
 
-    mouseup() {
-      window.removeEventListener('mousemove', this.mousemove)
-      window.removeEventListener('mouseup', this.mouseup)
-      this.newXY = { x: 0, y: 0 }
-      this.initXY = { x: 0, y: 0 }
-      this.active = false
-      this.edge = { top: 0, bottom: 0 }
-      clearInterval(this.intervalId)
-      this.intervalId = false
+  const containerTop = containerBound[getProp.value.position]
+  const containerBottom = containerBound[getProp.value.containerSize]
 
-      this.$emit('end')
-    },
+  newXY.x = clientX - initXY.x
+  newXY.y = clientY - initXY.y
 
-    update() {
-      const { position, axis } = this.getProp
+  const y = newXY[getProp.value.axis]
 
-      this.$emit('update', this.targetBound[position] - this.containerBound[position] + this.newXY[axis])
-    },
-  },
-  computed: {
-    getStyle() {
-      const { top, left, width, height } = this.targetBound
+  const topSensor = top + y < containerTop + EDGE_THRESHOLD
+  const bottomSensor = top + y + height > containerBottom - EDGE_THRESHOLD
 
-      const { newXY } = this
+  const velocityBottom =
+    (top + y + height - (containerBottom + edge.bottom - EDGE_THRESHOLD)) /
+    EDGE_THRESHOLD
 
-      return {
-        transform: `translate(${newXY.x}px, ${newXY.y}px)`,
-        left: `${left}px`,
-        top: `${top}px`,
-        width: `${width}px`,
-        height: `${height}px`,
-        zIndex: 2,
-      }
-    },
+  const velocityTop =
+    (containerTop + edge.top + EDGE_THRESHOLD - (top + y)) / EDGE_THRESHOLD
 
-    getProp () {
-      const propMap = {
-        [DIRECTION.ROW]: {
-          position: 'left',
-          size: 'width',
-          axis: 'x',
-          scroll: 'scrollLeft',
-          containerSize: 'right'
-        },
-        [DIRECTION.COLUMN]: {
-          position: 'top',
-          axis: 'y',
-          size: 'height',
-          scroll: 'scrollTop',
-          containerSize: 'bottom'
-        }
-      }
+  sign = topSensor ? -1 : bottomSensor ? 1 : 0
 
-      return propMap[this.direction]
+  vel = sign === -1 ? Math.max(0, velocityTop) : Math.max(0, velocityBottom)
+
+  if (topSensor || bottomSensor) {
+    if (!intervalId) {
+      intervalId = setInterval(() => {
+        update()
+        props.container[getProp.value.scroll] += 2 * vel * sign
+      }, 10)
     }
-  },
+  } else if (intervalId) {
+    // Clear timer when auto scroll is not true
+    clearInterval(intervalId)
+    intervalId = false
+    sign = 0
+    vel = 1
+    edge.top = 0
+    edge.bottom = 0
+  } else {
+    update()
+  }
 }
+
+const mouseup = () => {
+  window.removeEventListener('mousemove', mousemove)
+  window.removeEventListener('mouseup', mouseup)
+
+  newXY.x = 0
+  newXY.y = 0
+
+  edge.top = 0
+  edge.bottom = 0
+  clearInterval(intervalId)
+
+  intervalId = false
+
+  emit('end')
+}
+
+const update = () => {
+  const { position, axis } = getProp.value
+
+  emit('update', targetBound[position] - containerBound[position] + newXY[axis])
+}
+
+const getStyle = computed(() => {
+  const { top, left, width, height } = props.move.targetBound
+
+  return {
+    transform: `translate(${newXY.x}px, ${newXY.y}px)`,
+    left: `${left}px`,
+    top: `${top}px`,
+    width: `${width}px`,
+    height: `${height}px`,
+    zIndex: 2,
+  }
+})
+
+const getProp = computed(() => {
+  const propMap = {
+    [DIRECTION.ROW]: {
+      position: 'left',
+      size: 'width',
+      axis: 'x',
+      scroll: 'scrollLeft',
+      containerSize: 'right',
+    },
+    [DIRECTION.COLUMN]: {
+      position: 'top',
+      axis: 'y',
+      size: 'height',
+      scroll: 'scrollTop',
+      containerSize: 'bottom',
+    },
+  }
+
+  return propMap[props.direction]
+})
 </script>
 
 <style>

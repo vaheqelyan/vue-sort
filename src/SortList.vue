@@ -2,13 +2,17 @@
   <div>
     <div class="scrollList" ref="container" @scroll="onScroll" v-bind="$attrs">
       <div class="scrollList__inner" :style="getContainerHeight.style">
-        <div class="scrollList__content" :class="getDirectionClass" :style="getVirtualList.style">
+        <div
+          class="scrollList__content"
+          :class="getDirectionClass"
+          :style="getVirtualList.style"
+        >
           <move
             v-for="(item, index) in getVirtualList.selection"
             :key="item[itemId]"
             @start="onStartDrag"
             :has-started="start"
-            :container="$refs.container"
+            :container="container"
             :index="getVirtualList.start + index"
             :active-index="activeIndex"
             :new-index="newIndex"
@@ -38,10 +42,11 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import Move from './Move.vue'
 import Dragger from './Dragger.vue'
 import { DIRECTION } from './constants/props'
+import { ref, provide, reactive, computed, onMounted } from 'vue'
 
 const EVENT_OPTS = {
   passive: true,
@@ -53,166 +58,168 @@ Array.prototype.move = function (from, to) {
   return this
 }
 
-export default {
-  props: {
-    list: Array,
-    itemId: String,
-    rowHeight: Number,
-    viewport: Boolean,
-    overscanCount: {
-      type: Number,
-      default: 1,
-    },
-    direction: {
-      type: String,
-      default: DIRECTION.COLUMN
-    }
+const props = defineProps({
+  list: Array,
+  itemId: String,
+  rowHeight: Number,
+  viewport: Boolean,
+  overscanCount: {
+    type: Number,
+    default: 1,
   },
-  inheritAttrs: false,
-  components: {
-    Move,
-    Dragger,
+  direction: {
+    type: String,
+    default: DIRECTION.COLUMN,
   },
-  data: () => ({
-    start: false,
-    activeIndex: -1,
-    height: 0,
-    offset: 0,
-    moveInstance: {},
-    newIndex: -1,
-  }),
-  mounted() {
-    const { viewportSize, windowSize } = this.getProp
-    if (!this.viewport) {
-      this.height = this.$refs.container[viewportSize]
-    } else {
-      this.height = window[windowSize] || document.documentElement[viewportSize]
+})
 
-      window.addEventListener('scroll', this.onScroll, EVENT_OPTS)
-      window.addEventListener('resize', this.onResize, EVENT_OPTS)
-    }
-  },
-  methods: {
-    onResize() {
-      let height = window.innerHeight || document.documentElement.offsetHeight
-      if (height !== this.height) {
-        this.height = height
-      }
+let start = ref(false)
+const container = ref()
+
+let activeIndex = ref(-1)
+let height = ref(0)
+
+let offset = ref(0)
+let moveInstance = reactive({})
+let newIndex = ref(-1)
+
+onMounted(() => {
+  const { viewportSize, windowSize } = getProp.value
+
+  if (!props.viewport) {
+    height.value = container.value[viewportSize]
+  } else {
+    height.value = window[windowSize] || document.documentElement[viewportSize]
+
+    window.addEventListener('scroll', onScroll, EVENT_OPTS)
+    window.addEventListener('resize', onResize, EVENT_OPTS)
+  }
+})
+
+const getVirtualList = computed(() => {
+  let start = (offset.value / props.rowHeight) | 0
+  let visibleRowCount = (height.value / props.rowHeight) | 0
+
+  /*if (props.overscanCount) {
+        start = Math.max(0, start - (start % props.overscanCount))
+        visibleRowCount += props.overscanCount
+      }*/
+  let end = start + 1 + visibleRowCount
+
+  let selection = props.list.slice(start, end)
+
+  return {
+    selection,
+    style: { [getProp.value.position]: `${start * props.rowHeight}px` },
+    start,
+  }
+})
+
+const getContainerHeight = computed(() => {
+  const size = props.list.length * props.rowHeight
+
+  return {
+    size,
+    style: {
+      [getDirectionSize.value]: `${size}px`,
     },
+  }
+})
 
-    onUpdate(y) {
-      if (this.start) {
-        let newIndex = Math.round((this.offset + y) / this.rowHeight)
+const getContainer = computed(() => {
+  return props.viewport ? document.documentElement : container.value
+})
 
-        newIndex = Math.min(Math.max(0, newIndex), this.list.length - 1)
+const getDirectionSize = computed(() => {
+  const classMap = {
+    [DIRECTION.ROW]: 'width',
+    [DIRECTION.COLUMN]: 'height',
+  }
 
-        this.newIndex = newIndex
-      }
+  return classMap[props.direction]
+})
+
+const getDirectionClass = computed(() => {
+  const classMap = {
+    [DIRECTION.ROW]: 'scrollList__content--row',
+    [DIRECTION.COLUMN]: 'scrollList__content--col',
+  }
+
+  return classMap[props.direction]
+})
+
+const getProp = computed(() => {
+  const classMap = {
+    [DIRECTION.ROW]: {
+      scroll: 'scrollLeft',
+      position: 'left',
+      viewportSize: 'offsetWidth',
+      windowSize: 'innerWidth',
     },
-    onStartDrag(value) {
-      this.start = true
-      this.activeIndex = value.index
-      this.moveInstance = value
+    [DIRECTION.COLUMN]: {
+      scroll: 'scrollTop',
+      position: 'top',
+      viewportSize: 'offsetHeight',
+      windowSize: 'innerHeight',
     },
-    onEnd() {
-      if (this.newIndex !== -1) {
-        this.$emit('sort', {
-          index: this.activeIndex,
-          newIndex: this.newIndex,
-        })
-      }
+  }
 
-      this.activeIndex = -1
-      this.newIndex = -1
-      this.start = false
-    },
-    onScroll() {
-      if (!this.viewport) {
-        this.offset = this.$refs.container[this.getProp.scroll]
-      } else {
-        let offset = Math.max(
-          0,
-          (this.$refs.container &&
-            -this.$refs.container.getBoundingClientRect().top) ||
-            0
-        )
+  return classMap[props.direction]
+})
 
-        this.offset = offset
-      }
-    },
-  },
-  computed: {
-    getVirtualList() {
-      let start = (this.offset / this.rowHeight) | 0
-      let visibleRowCount = (this.height / this.rowHeight) | 0
+const onResize = () => {
+  let height = window.innerHeight || document.documentElement.offsetHeight
+  if (height !== height) {
+    height = height
+  }
+}
 
-      if (this.overscanCount) {
-        start = Math.max(0, start - (start % this.overscanCount))
-        visibleRowCount += this.overscanCount
-      }
-      let end = start + 1 + visibleRowCount
+const onUpdate = (y) => {
+  if (start) {
+    let newIndex = Math.round((offset + y) / props.rowHeight)
 
-      let selection = this.list.slice(start, end)
+    newIndex = Math.min(Math.max(0, newIndex), props.list.length - 1)
 
-      return { selection, style: { [this.getProp.position]: `${start * this.rowHeight}px` }, start }
-    },
+    newIndex = newIndex
+  }
+}
 
-    getContainerHeight() {
-      const size = this.list.length * this.rowHeight
+const onStartDrag = (value) => {
+  start = true
+  activeIndex = value.index
+  moveInstance = reactive(value)
+}
 
-      return {
-        size,
-        style: {
-          [this.getDirectionSize ]: `${size}px`,
-        },
-      }
-    },
+const onEnd = () => {
+  if (newIndex !== -1) {
+    emit('sort', {
+      index: activeIndex,
+      newIndex: newIndex,
+    })
+  }
 
-    getContainer() {
-      return this.viewport ? document.documentElement : this.$refs.container
-    },
+  activeIndex = -1
+  newIndex = -1
+  start = false
+}
 
-    getDirectionSize () {
-      const classMap = {
-        [DIRECTION.ROW]: 'width',
-        [DIRECTION.COLUMN]: 'height'
-      }
-
-      return classMap[this.direction]
-    },
-
-    getDirectionClass () {
-      const classMap = {
-        [DIRECTION.ROW]: 'scrollList__content--row',
-        [DIRECTION.COLUMN]: 'scrollList__content--col'
-      }
-
-      return classMap[this.direction]
-    },
-
-    getProp () {
-      const classMap = {
-        [DIRECTION.ROW]: {
-          scroll: 'scrollLeft',
-          position: 'left',
-          viewportSize: 'offsetWidth',
-          windowSize: 'innerWidth'
-        },
-        [DIRECTION.COLUMN]: {
-          scroll: 'scrollTop',
-          position: 'top',
-          viewportSize: 'offsetHeight',
-          windowSize: 'innerHeight'
-        }
-      }
-
-      return classMap[this.direction]
-    }
-  },
+const onScroll = () => {
+  if (!props.viewport) {
+    offset.value = container.value[getProp.value.scroll]
+  } else {
+    offset.value = Math.max(
+      0,
+      (container.value && -container.value.getBoundingClientRect().top) || 0
+    )
+  }
 }
 </script>
 
 <style>
+.scrollList {
+  overflow-y: scroll;
+}
+
 .scrollList__inner {
   position: relative;
   overflow: hidden;
@@ -227,7 +234,6 @@ export default {
   left: 0;
   height: 100%;
   width: 100%;
-  overflow: visible;
   display: flex;
 }
 
