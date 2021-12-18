@@ -46,7 +46,7 @@
 import Move from './Move.vue'
 import Dragger from './Dragger.vue'
 import { DIRECTION } from './constants/props'
-import { ref, provide, reactive, computed, onMounted } from 'vue'
+import { watch, ref, inject, provide, reactive, computed, onMounted } from 'vue'
 
 const EVENT_OPTS = {
   passive: true,
@@ -67,11 +67,14 @@ const props = defineProps({
     type: Number,
     default: 1,
   },
+  dropId: String,
   direction: {
     type: String,
     default: DIRECTION.COLUMN,
   },
 })
+
+const emit = defineEmits(['sort'])
 
 let start = ref(false)
 const container = ref()
@@ -82,6 +85,9 @@ let height = ref(0)
 let offset = ref(0)
 let moveInstance = reactive({})
 let newIndex = ref(-1)
+
+const setDnDBound = inject('setBound')
+const getDnDId = inject('getDropId')
 
 onMounted(() => {
   const { viewportSize, windowSize } = getProp.value
@@ -94,16 +100,18 @@ onMounted(() => {
     window.addEventListener('scroll', onScroll, EVENT_OPTS)
     window.addEventListener('resize', onResize, EVENT_OPTS)
   }
+
+  setDnDBound(container.value.getBoundingClientRect(), props.dropId)
 })
 
 const getVirtualList = computed(() => {
   let start = (offset.value / props.rowHeight) | 0
   let visibleRowCount = (height.value / props.rowHeight) | 0
 
-  /*if (props.overscanCount) {
-        start = Math.max(0, start - (start % props.overscanCount))
-        visibleRowCount += props.overscanCount
-      }*/
+  if (props.overscanCount) {
+    start = Math.max(0, start - (start % props.overscanCount))
+    visibleRowCount += props.overscanCount
+  }
   let end = start + 1 + visibleRowCount
 
   let selection = props.list.slice(start, end)
@@ -176,31 +184,32 @@ const onResize = () => {
 
 const onUpdate = (y) => {
   if (start) {
-    let newIndex = Math.round((offset + y) / props.rowHeight)
+    let index = Math.round((offset.value + y) / props.rowHeight)
 
-    newIndex = Math.min(Math.max(0, newIndex), props.list.length - 1)
+    index = Math.min(Math.max(0, index), props.list.length - 1)
 
-    newIndex = newIndex
+    newIndex.value = index
   }
 }
 
 const onStartDrag = (value) => {
-  start = true
-  activeIndex = value.index
-  moveInstance = reactive(value)
+  start.value = true
+  activeIndex.value = value.index
+
+  Object.assign(moveInstance, value)
 }
 
 const onEnd = () => {
   if (newIndex !== -1) {
     emit('sort', {
-      index: activeIndex,
-      newIndex: newIndex,
+      index: activeIndex.value,
+      newIndex: newIndex.value,
     })
   }
 
-  activeIndex = -1
-  newIndex = -1
-  start = false
+  activeIndex.value = -1
+  newIndex.value = -1
+  start.value = false
 }
 
 const onScroll = () => {
@@ -213,6 +222,12 @@ const onScroll = () => {
     )
   }
 }
+
+watch(getDnDId, (id) => {
+  if (id === props.dropId) {
+    console.log('it is', props.dropId)
+  }
+})
 </script>
 
 <style>

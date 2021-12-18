@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import SortList from './SortList.vue'
 import DynamicVirtualList from './DynamicVirtualList.vue'
+import DnDProvider from './DnDProvider.vue'
 import dataItems from './data.js'
 
 const msg = ref('Hello World!')
@@ -38,6 +39,7 @@ const onSort = ({ index, newIndex }) => {
 </script>
 
 <template>
+  <DnDProvider>
   <!--<DynamicVirtualList
     :list="items"
     @sort="onSort"
@@ -56,12 +58,15 @@ const onSort = ({ index, newIndex }) => {
       <div class="item">{{ item.key }}</div>
     </template>
   </DynamicVirtualList>-->
+
+
   <SortList
     :list="items"
     @sort="onSort"
     item-id="key"
     class="container"
     :row-height="100"
+		drop-id="bucket-1"
   >
     <template v-slot:item="{ item, isActive }">
       <div class="row">
@@ -76,12 +81,44 @@ const onSort = ({ index, newIndex }) => {
       <div class="item">{{ item.key }}</div>
     </template>
   </SortList>
+
+
+  <SortList
+    :list="items"
+    @sort="onSort"
+    item-id="key"
+    class="container container--pos"
+    :row-height="100"
+		drop-id="bucket-2"
+  >
+    <template v-slot:item="{ item, isActive }">
+      <div class="row">
+        <div v-if="isActive" class="row--active">
+          Hello {{ item.key }} 
+        </div>
+        <div v-else>Helo {{ item.key }}</div>
+      </div>
+    </template>
+
+    <template v-slot:drag-element="{ item }">
+      <div class="item">{{ item.key }}</div>
+    </template>
+  </SortList>
+
+
+  </DnDProvider>
 </template>
 
 <style>
 .container {
-  height: 400px;
+  height: 300px;
   width: 500px;
+}
+
+.container--pos {
+  position: relative;
+  top: 0px;
+  left: 400px;
 }
 
 .item {

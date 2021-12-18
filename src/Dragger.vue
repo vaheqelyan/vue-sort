@@ -6,7 +6,7 @@
 
 <script setup>
 import { DIRECTION } from './constants/props'
-import { onMounted, ref, provide, reactive, computed } from 'vue'
+import { inject, onMounted, ref, provide, reactive, computed } from 'vue'
 
 const EDGE_THRESHOLD = 20
 
@@ -59,6 +59,9 @@ let edge = reactive({
 
 const emit = defineEmits(['update', 'end'])
 
+const dndBounds = inject('bounds')
+const dndSetDropZone = inject('setDropZone')
+
 onMounted(() => {
   window.addEventListener('mousemove', mousemove)
   window.addEventListener('mouseup', mouseup)
@@ -67,23 +70,45 @@ onMounted(() => {
   edge = reactive(props.move.edge)
 
   containerBound = reactive(props.move.containerBound)
+  console.log(props.move.targetBound)
 
   targetBound = reactive(props.move.targetBound)
 })
 
 const mousemove = ({ clientX, clientY }) => {
-  const top = targetBound[getProp.value.position]
+  /*const top = targetBound[getProp.value.position]
   const height = targetBound[getProp.value.size]
 
   const containerTop = containerBound[getProp.value.position]
-  const containerBottom = containerBound[getProp.value.containerSize]
+  const containerBottom = containerBound[getProp.value.containerSize]*/
 
   newXY.x = clientX - initXY.x
   newXY.y = clientY - initXY.y
 
   const y = newXY[getProp.value.axis]
 
-  const topSensor = top + y < containerTop + EDGE_THRESHOLD
+  let _top = targetBound.top + newXY.y
+  let _left = targetBound.left + newXY.x
+
+  let foundIndex
+
+  for (let i = 0; i < dndBounds.length; i++) {
+    let bound = dndBounds[i]
+
+    if (
+      _left > bound.left &&
+      _left < bound.right &&
+      _top > bound.top &&
+      _top < bound.bottom
+    ) {
+      foundIndex = i
+      break
+    }
+  }
+
+  dndSetDropZone(foundIndex)
+
+  /*const topSensor = top + y < containerTop + EDGE_THRESHOLD
   const bottomSensor = top + y + height > containerBottom - EDGE_THRESHOLD
 
   const velocityBottom =
@@ -114,7 +139,7 @@ const mousemove = ({ clientX, clientY }) => {
     edge.bottom = 0
   } else {
     update()
-  }
+  }*/
 }
 
 const mouseup = () => {
@@ -140,7 +165,7 @@ const update = () => {
 }
 
 const getStyle = computed(() => {
-  const { top, left, width, height } = props.move.targetBound
+  const { top, left, width, height } = targetBound
 
   return {
     transform: `translate(${newXY.x}px, ${newXY.y}px)`,
