@@ -50,8 +50,8 @@ const setCordinate = (value) => {
 setDropZone(null)
    shouldDrop.value = false
 
-   //setDnDFrom(null)
-   //setCordinate(0)
+   setDnDFrom(null)
+   setCordinate(0)
  }
 
 

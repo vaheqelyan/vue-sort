@@ -3,13 +3,9 @@ import { inject, onMounted, ref, provide, reactive, computed } from "vue";
 const EDGE_THRESHOLD = 20;
 
 export default () => {
-  let oldY = ref(0);
-  let t = ref(0);
   let vel = ref(1);
   let sign = ref(0);
   let intervalId = ref(false);
-
-	let offset = ref(0)
 
   let edge = reactive({
     top: 0,
@@ -32,6 +28,7 @@ export default () => {
     const containerBottom = containerBound[getProp.value.containerSize];
 
     cordinate = cordinate + top
+    //console.log(cordinate)
 
     const topSensor = cordinate < containerTop + EDGE_THRESHOLD;
     const bottomSensor = cordinate + height > containerBottom - EDGE_THRESHOLD;
@@ -48,14 +45,12 @@ export default () => {
 
     vel.value = sign.value === -1 ? Math.max(0, velocityTop) : Math.max(0, velocityBottom);
 
-		offset.value = top - containerTop + cordinate
-
     if (topSensor || bottomSensor) {
       if (!intervalId.value) {
         intervalId.value = setInterval(() => {
           getContainer.value[getProp.value.scroll] += 2 * vel.value * sign.value;
 
-          callback(offset.value);
+          callback(cordinate - containerTop);
         }, 10);
       }
     } else if (intervalId.value) {
@@ -67,7 +62,7 @@ export default () => {
       edge.top = 0;
       edge.bottom = 0;
     } else {
-      callback(offset.value);
+      callback(cordinate - containerTop);
     }
   };
 
