@@ -11,12 +11,12 @@
             v-for="(item, index) in getVirtualList.selection"
             :key="item[itemId]"
             @start="onStartDrag"
-            :has-started="start"
+            :has-started="startDrag"
             :container="container"
             :index="getVirtualList.start + index"
             :active-index="activeIndex"
             :new-index="newIndex"
-            :moveInstance="moveInstance"
+            :move-instance="getDnDMove"
             :direction="direction"
           >
             <slot
@@ -30,14 +30,14 @@
     </div>
 
     <dragger
-      v-if="start"
-      :move="moveInstance"
+      v-if="startDrag"
+      :move="getDnDMove"
       :container="getContainer"
       :direction="direction"
       @update="onUpdate"
       @end="onEnd"
     >
-      <slot name="drag-element" v-bind:item="list[activeIndex]" />
+      <slot name="drag-element" v-bind:item="list[getDnDMove.index]" />
     </dragger>
   </div>
 </template>
@@ -47,6 +47,8 @@ import Move from './Move.vue'
 import Dragger from './Dragger.vue'
 import { DIRECTION } from './constants/props'
 import { watch, ref, inject, provide, reactive, computed, onMounted } from 'vue'
+import useAutoscroll from './hooks/useAutoscroll'
+import useDnD from './hooks/useDnD'
 
 const EVENT_OPTS = {
   passive: true,
@@ -76,18 +78,25 @@ const props = defineProps({
 
 const emit = defineEmits(['sort'])
 
-let start = ref(false)
+let startDrag = ref(false)
 const container = ref()
 
 let activeIndex = ref(-1)
 let height = ref(0)
 
 let offset = ref(0)
-let moveInstance = reactive({})
 let newIndex = ref(-1)
 
 const setDnDBound = inject('setBound')
+const getCordinate = inject('getCordinate')
 const getDnDId = inject('getDropId')
+const setDnDFrom = inject('setDnDFrom')
+const getDnDFrom = inject('getDnDFrom')
+const getDnDMove = inject('getDnDMove')
+const setDnDMove = inject('setDnDMove')
+
+const { autoscroll, stopAutoscroll } = useAutoscroll()
+const { isIn, selfDrag } = useDnD(props.dropId)
 
 onMounted(() => {
   const { viewportSize, windowSize } = getProp.value
@@ -161,6 +170,9 @@ const getProp = computed(() => {
     [DIRECTION.ROW]: {
       scroll: 'scrollLeft',
       position: 'left',
+      size: 'width',
+      containerSize: 'right',
+
       viewportSize: 'offsetWidth',
       windowSize: 'innerWidth',
     },
@@ -169,6 +181,9 @@ const getProp = computed(() => {
       position: 'top',
       viewportSize: 'offsetHeight',
       windowSize: 'innerHeight',
+      containerSize: 'bottom',
+
+      size: 'height',
     },
   }
 
@@ -183,20 +198,28 @@ const onResize = () => {
 }
 
 const onUpdate = (y) => {
-  if (start) {
-    let index = Math.round((offset.value + y) / props.rowHeight)
+  let index = Math.round((offset.value + y) / props.rowHeight)
 
-    index = Math.min(Math.max(0, index), props.list.length - 1)
+  index = Math.min(Math.max(0, index), props.list.length - 1)
 
-    newIndex.value = index
-  }
+  newIndex.value = index
+}
+
+const onNew = (y) => {
+  let index = Math.round((offset.value + y) / props.rowHeight)
+
+  index = Math.min(Math.max(0, index), props.list.length - 1)
+
+  activeIndex.value = index
+  newIndex.value = index
 }
 
 const onStartDrag = (value) => {
-  start.value = true
-  activeIndex.value = value.index
+  setDnDFrom(props.dropId)
 
-  Object.assign(moveInstance, value)
+  setDnDMove(value)
+
+  startDrag.value = true
 }
 
 const onEnd = () => {
@@ -209,7 +232,7 @@ const onEnd = () => {
 
   activeIndex.value = -1
   newIndex.value = -1
-  start.value = false
+  startDrag.value = false
 }
 
 const onScroll = () => {
@@ -223,9 +246,45 @@ const onScroll = () => {
   }
 }
 
-watch(getDnDId, (id) => {
-  if (id === props.dropId) {
-    console.log('it is', props.dropId)
+const dndBounds = inject('bounds')
+
+watch(isIn, hasEntered => {
+  if (hasEntered) {
+    selfDrag.value = props.dropId === getDnDFrom.value
+
+    if (selfDrag.value) {
+      activeIndex.value = getDnDMove.index
+    }
+  } else {
+    stopAutoscroll()
+    activeIndex.value = -1
+    newIndex.value = -1
+  }
+})
+
+watch(getCordinate, (cordinate) => {
+  if (isIn.value) {
+    const containerBound = dndBounds[props.dropId]
+
+    if (selfDrag.value) {
+      autoscroll(
+        cordinate,
+        containerBound,
+        getDnDMove,
+        getProp,
+        getContainer,
+        onUpdate
+      )
+    } else {
+      autoscroll(
+        cordinate,
+        containerBound,
+        getDnDMove,
+        getProp,
+        getContainer,
+        onNew
+      )
+    }
   }
 })
 </script>

@@ -19,10 +19,10 @@ const props = defineProps({
   hasStarted: Boolean,
   boundEntries: Array,
   columnName: String,
+	activeIndex: Number,
   container: HTMLDivElement,
   index: Number,
   newIndex: Number,
-  activeIndex: Number,
   moveInstance: Object,
   direction: String,
 })
@@ -117,11 +117,13 @@ const getProp = computed(() => {
 })
 
 const getStyle = computed(() => {
+	const { activeIndex } = props
+
   if (
     !props.hasStarted ||
     props.newIndex === -1 ||
-    props.activeIndex === -1 ||
-    props.activeIndex === props.index
+    activeIndex === -1 ||
+    activeIndex === props.index
   )
     return
 
@@ -129,10 +131,10 @@ const getStyle = computed(() => {
 
   const translateSize = props.moveInstance.targetBound[size]
 
-  const isDown = Math.sign(props.newIndex - props.activeIndex) > 0
+  const isDown = (props.newIndex - activeIndex) > 0
 
   if (
-    props.index >= props.activeIndex &&
+    props.index >= activeIndex &&
     props.index <= props.newIndex &&
     isDown
   ) {
@@ -140,7 +142,7 @@ const getStyle = computed(() => {
       transform: `translate${translateAxis}(${-translateSize}px)`,
     }
   } else if (
-    props.index <= props.activeIndex &&
+    props.index <= activeIndex &&
     props.index >= props.newIndex &&
     !isDown
   ) {
