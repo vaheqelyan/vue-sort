@@ -94,6 +94,9 @@ const setDnDFrom = inject('setDnDFrom')
 const getDnDFrom = inject('getDnDFrom')
 const getDnDMove = inject('getDnDMove')
 const setDnDMove = inject('setDnDMove')
+const shouldDrop = inject('shouldDrop')
+
+const dndCleanUp = inject('dndCleanUp')
 
 const { autoscroll, stopAutoscroll } = useAutoscroll()
 const { isIn, selfDrag } = useDnD(props.dropId)
@@ -248,10 +251,15 @@ const onScroll = () => {
 
 const dndBounds = inject('bounds')
 
+watch(shouldDrop, () => {
+  if (isIn.value && selfDrag.value) {
+    onEnd()
+    dndCleanUp()
+  }
+})
+
 watch(isIn, hasEntered => {
   if (hasEntered) {
-    selfDrag.value = props.dropId === getDnDFrom.value
-
     if (selfDrag.value) {
       activeIndex.value = getDnDMove.index
     }

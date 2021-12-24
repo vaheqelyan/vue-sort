@@ -6,8 +6,14 @@ export default (dropId) => {
   let isIn = ref(false)
   let selfDrag = ref(false)
 
+  const getDnDFrom = inject('getDnDFrom')
+
+
   watch(getDnDId, (id) => {
     if (id === dropId) {
+
+      selfDrag.value = dropId === getDnDFrom.value
+
       if (!isIn.value) {
         isIn.value = true
       }

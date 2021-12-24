@@ -45,6 +45,7 @@ const emit = defineEmits(['end'])
 const dndBounds = inject('getDnDBounds')
 const dndSetDropZone = inject('setDropZone')
 const dndSetCordinate = inject('setDnDCordinate')
+const dndDrop = inject('dndDrop')
 
 onMounted(() => {
   window.addEventListener('mousemove', mousemove)
@@ -95,7 +96,9 @@ const mouseup = () => {
   edge.top = 0
   edge.bottom = 0
 
-  emit('end')
+  //emit('end')
+
+	dndDrop()
 }
 
 const getStyle = computed(() => {

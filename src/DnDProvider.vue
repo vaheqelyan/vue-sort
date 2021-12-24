@@ -13,6 +13,8 @@ const cordinate = ref()
 const from = ref()
 let dropId = ref()
 
+let shouldDrop = ref(false)
+
 const setBound = (bound, dropId) => {
 	Object.assign(bounds, {
 	[dropId]: bound
@@ -39,6 +41,20 @@ const setCordinate = (value) => {
  	return Object.entries(bounds)
  })
 
+ const dndDrop = () => {
+  shouldDrop.value = true
+ }
+
+ const dndCleanUp = () => {
+
+setDropZone(null)
+   shouldDrop.value = false
+
+   //setDnDFrom(null)
+   //setCordinate(0)
+ }
+
+
 
 provide('bounds', bounds)
 
@@ -54,5 +70,11 @@ provide('getDnDFrom', from)
 
 provide('getDnDMove', moveElement)
 provide('setDnDMove', setDnDMove)
+
+provide('dndDrop', dndDrop)
+
+provide('shouldDrop', shouldDrop)
+
+provide('dndCleanUp', dndCleanUp)
 
 </script>
