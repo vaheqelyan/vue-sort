@@ -226,13 +226,6 @@ const onStartDrag = (value) => {
 }
 
 const onEnd = () => {
-  /*if (newIndex !== -1) {
-    emit('sort', {
-      index: activeIndex.value,
-      newIndex: newIndex.value,
-    })
-  }*/
-
   activeIndex.value = -1
   newIndex.value = -1
   startDrag.value = false
@@ -296,25 +289,16 @@ watch(getCordinate, (cordinate) => {
   if (isIn.value) {
     const containerBound = dndBounds[props.dropId]
 
-    if (selfDrag.value) {
-      autoscroll(
-        cordinate,
-        containerBound,
-        getDnDMove,
-        getProp,
-        getContainer,
-        onUpdate
-      )
-    } else {
-      autoscroll(
-        cordinate,
-        containerBound,
-        getDnDMove,
-        getProp,
-        getContainer,
-        onNew
-      )
-    }
+    const callback = selfDrag.value ? onUpdate : onNew
+
+    autoscroll(
+      cordinate,
+      containerBound,
+      getDnDMove,
+      getProp,
+      getContainer,
+      callback
+    )
   }
 })
 </script>
