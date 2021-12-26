@@ -45,6 +45,14 @@ const onSort = ({ index, newIndex }) => {
   data = data.move(index, newIndex)
   items.value = data
 }
+
+const onSort2 = ({ index, newIndex }) => {
+  let data = items2.value.slice()
+
+  data = data.move(index, newIndex)
+  items2.value = data
+}
+
 </script>
 
 <template>
@@ -95,7 +103,7 @@ const onSort = ({ index, newIndex }) => {
 
   <SortList
     :list="items2"
-    @sort="onSort"
+    @sort="onSort2"
     @dnd-insert="onInsert"
     item-id="key"
     class="container container--pos"
