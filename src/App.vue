@@ -17,18 +17,27 @@ function uid() {
 
 const items = ref(dataItems)
 
-/*const items = ref(
-  new Array(20).fill().map((value, index) => ({
-    name: `${value}-${index}`,
-    id: uid(),
-    index,
-  }))
-)*/
+const items2 = ref(dataItems.slice())
+
 
 Array.prototype.move = function (from, to) {
   this.splice(to, 0, this.splice(from, 1)[0])
   return this
 }
+
+Array.prototype.insert = function ( index, item ) {
+    this.splice( index, 0, item )
+}
+
+const onInsert = ({ index, element }) => {
+  const newItem = { ...element, key: element.key + Math.random() }
+  items2.value.insert(index, newItem)
+}
+
+const onRemove = ({ index }) => {
+  items.value.splice(index, 1)
+}
+
 
 const onSort = ({ index, newIndex }) => {
   let data = items.value.slice()
@@ -63,6 +72,7 @@ const onSort = ({ index, newIndex }) => {
   <SortList
     :list="items"
     @sort="onSort"
+    @remove="onRemove"
     item-id="key"
     class="container"
     :row-height="100"
@@ -84,8 +94,9 @@ const onSort = ({ index, newIndex }) => {
 
 
   <SortList
-    :list="items"
+    :list="items2"
     @sort="onSort"
+    @dnd-insert="onInsert"
     item-id="key"
     class="container container--pos"
     :row-height="100"

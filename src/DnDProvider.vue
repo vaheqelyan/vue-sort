@@ -33,8 +33,11 @@ const setCordinate = (value) => {
 	from.value = dropId
  }
 
- const setDnDMove = move => {
-	Object.assign(moveElement, move)
+ const setDnDMove = (move, element) => {
+	Object.assign(moveElement, {
+    ...move,
+    data: { ...element }
+  })
  }
 
  const getDnDBounds = computed(() => {

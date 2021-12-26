@@ -76,7 +76,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['sort'])
+const emit = defineEmits(['sort', 'dnd-insert'])
 
 let startDrag = ref(false)
 const container = ref()
@@ -220,18 +220,18 @@ const onNew = (y) => {
 const onStartDrag = (value) => {
   setDnDFrom(props.dropId)
 
-  setDnDMove(value)
+  setDnDMove(value, props.list[value.index])
 
   startDrag.value = true
 }
 
 const onEnd = () => {
-  if (newIndex !== -1) {
+  /*if (newIndex !== -1) {
     emit('sort', {
       index: activeIndex.value,
       newIndex: newIndex.value,
     })
-  }
+  }*/
 
   activeIndex.value = -1
   newIndex.value = -1
@@ -251,14 +251,36 @@ const onScroll = () => {
 
 const dndBounds = inject('bounds')
 
-watch(shouldDrop, () => {
+watch(shouldDrop, (drag) => {
+  if (!drag) return
+
   if (isIn.value && selfDrag.value) {
+    emit('sort', {
+      index: activeIndex.value,
+      newIndex: newIndex.value,
+    })
     onEnd()
     dndCleanUp()
   }
+
+  if (isIn.value && !selfDrag.value) {
+    emit('dnd-insert', {
+      index: activeIndex.value,
+      element: getDnDMove.data,
+    })
+
+    onEnd()
+    dndCleanUp()
+  }
+
+  if (getDnDFrom.value === props.dropId) {
+    emit('remove', { index: getDnDMove.index })
+
+    onEnd()
+  }
 })
 
-watch(isIn, hasEntered => {
+watch(isIn, (hasEntered) => {
   if (hasEntered) {
     if (selfDrag.value) {
       activeIndex.value = getDnDMove.index
