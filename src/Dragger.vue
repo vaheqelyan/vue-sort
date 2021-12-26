@@ -27,7 +27,6 @@ let newXY = reactive({
   y: 0,
 })
 
-let targetBound = reactive({ width: 0, height: 0, top: 0, left: 0 })
 let containerBound = reactive({ width: 0, height: 0, top: 0, left: 0 })
 
 const height = ref(0)
@@ -55,11 +54,11 @@ onMounted(() => {
   edge = reactive(props.move.edge)
 
   containerBound = reactive(props.move.containerBound)
-
-  targetBound = reactive(props.move.targetBound)
 })
 
 const mousemove = ({ clientX, clientY }) => {
+  const { targetBound } = props.move
+
   newXY.x = clientX - initXY.x
   newXY.y = clientY - initXY.y
 
@@ -102,7 +101,7 @@ const mouseup = () => {
 }
 
 const getStyle = computed(() => {
-  const { top, left, width, height } = targetBound
+  const { top, left, width, height } = props.move.targetBound
 
   return {
     transform: `translate(${newXY.x}px, ${newXY.y}px)`,
