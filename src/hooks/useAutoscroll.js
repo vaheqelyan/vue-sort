@@ -28,7 +28,6 @@ export default () => {
     const containerBottom = containerBound[getProp.value.containerSize];
 
     cordinate = cordinate + top
-    //console.log(cordinate)
 
     const topSensor = cordinate < containerTop + EDGE_THRESHOLD;
     const bottomSensor = cordinate + height > containerBottom - EDGE_THRESHOLD;

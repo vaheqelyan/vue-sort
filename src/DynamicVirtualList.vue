@@ -18,7 +18,7 @@
           :index="start + index"
           :active-index="activeIndex"
           :new-index="newIndex"
-          :move-instance="moveInstance"
+          :move-instance="getDnDMove"
           :direction="direction"
           class="vList__row"
         >
@@ -35,7 +35,7 @@
 
     <Dragger
       v-if="hasStarted"
-      :move="moveInstance"
+      :move="getDnDMove"
       :container="getContainer"
       :direction="direction"
       @update="onUpdate"
@@ -54,6 +54,7 @@ import Dragger from './Dragger.vue'
 import { DIRECTION } from './constants/props'
 import useAutoscroll from './hooks/useAutoscroll'
 import useDnD from './hooks/useDnD'
+
 import {
   watch,
   ref,
@@ -76,6 +77,7 @@ const EVENT_OPTS = {
 }
 
 const props = defineProps({
+  dropId: String,
   list: Array,
   viewport: Boolean,
   itemId: String,
@@ -102,8 +104,29 @@ let averageHeight = ref(0)
 let hasStarted = ref(false)
 let newIndex = ref(-1)
 let activeIndex = ref(-1)
-let moveInstance = reactive({})
 let offset = ref(0)
+let filterIndex = ref(-1)
+
+const { autoscroll, stopAutoscroll } = useAutoscroll()
+const { isIn, selfDrag, dropEvent } = useDnD({
+  dropId: props.dropId,
+  on: {
+    drop: () => onEnd(),
+  },
+  activeIndex,
+  newIndex,
+})
+
+const setDnDBound = inject('setBound')
+const getCordinate = inject('getCordinate')
+const getDnDId = inject('getDropId')
+const setDnDFrom = inject('setDnDFrom')
+const getDnDFrom = inject('getDnDFrom')
+const getDnDMove = inject('getDnDMove')
+const setDnDMove = inject('setDnDMove')
+//const shouldDrop = inject('shouldDrop')
+
+const dndCleanUp = inject('dndCleanUp')
 
 onMounted(() => {
   if (props.viewport) {
@@ -115,6 +138,9 @@ onMounted(() => {
   }
 
   rows.value = content.value.getElementsByClassName('vList__row')
+
+  setDnDBound(viewport.value.getBoundingClientRect(), props.dropId)
+
   initVisibleRows()
 })
 
@@ -220,7 +246,8 @@ const onScroll = async () => {
 }
 
 const onStartDrag = (value) => {
-  Object.assign(moveInstance, value)
+  setDnDFrom(props.dropId)
+  setDnDMove(value, props.list[value.index])
 
   hasStarted.value = true
   activeIndex.value = value.index
@@ -228,51 +255,44 @@ const onStartDrag = (value) => {
 
 const onUpdate = (y) => {
   if (hasStarted.value) {
-    const targetHeight = moveInstance.targetBound[getProp.value.targetSize]
+    const targetHeight = getDnDMove.targetBound[getProp.value.targetSize]
 
-    let offset = offset.value + y + targetHeight
+    let scrollTop = offset.value + y + targetHeight
 
-    let newIndex
+    let index
 
-    let top = top.value
-
-    logger.value.innerHTML = `<b>${offset}</b>`
+    let topValue = top.value
 
     for (let i = start.value; i < end.value; i++) {
       const height = heightMap[i]
       const nextHeight = heightMap[i + 1] || 0
 
-      if (offset <= top + height + nextHeight / 2) {
-        newIndex = i
+      if (scrollTop <= topValue + height + nextHeight / 2) {
+        index = i
         break
       }
 
-      top += height
+      topValue += height
     }
 
-    if (newIndex !== undefined) {
-      newIndex.value = newIndex
+    if (index !== undefined) {
+      newIndex.value = index
     }
   }
 }
 
 const onEnd = () => {
   if (newIndex.value !== -1) {
-    let heightMap = heightMap.slice()
+    let newHeightMap = heightMap.slice()
 
-    heightMap = reactive(heightMap.move(this.activeIndex, this.newIndex))
+    heightMap = reactive(newHeightMap.move(activeIndex, newIndex.value))
 
-    emit('sort', {
-      index: activeIndex.value,
-      newIndex: newIndex.value,
-    })
+    onScroll()
+
+    activeIndex.value = -1
+    newIndex.value = -1
+    hasStarted.value = false
   }
-
-  onScroll()
-
-  activeIndex.value = -1
-  newIndex.value = -1
-  hasStarted.value = false
 }
 
 const visible = computed(() => {
@@ -305,6 +325,10 @@ const getProp = computed(() => {
       paddingBottom: 'paddingRight',
       scroll: 'scrollLeft',
       targetSize: 'width',
+
+      position: 'left',
+      size: 'width',
+      containerSize: 'right',
     },
     [DIRECTION.COLUMN]: {
       innerClass: 'vList__inner--column',
@@ -314,10 +338,54 @@ const getProp = computed(() => {
       paddingBottom: 'paddingBottom',
       scroll: 'scrollTop',
       targetSize: 'height',
+
+      position: 'top',
+      size: 'height',
+      containerSize: 'bottom',
     },
   }
 
   return classMap[props.direction]
+})
+
+watch(isIn, (hasEntered, prevValue) => {
+  if (hasEntered) {
+    if (selfDrag.value) {
+      activeIndex.value = getDnDMove.index
+      filterIndex.value = -1
+    }
+  } else {
+    if (getDnDFrom.value === props.dropId) {
+      filterIndex.value = activeIndex.value
+
+      //console.log('leave from')
+    } else {
+      //console.log('leave')
+    }
+
+    stopAutoscroll()
+    activeIndex.value = -1
+    newIndex.value = -1
+  }
+})
+
+const dndBounds = inject('bounds')
+
+watch(getCordinate, (cordinate) => {
+  if (isIn.value) {
+    const containerBound = dndBounds[props.dropId]
+
+    const callback = selfDrag.value ? onUpdate : onNew
+
+    autoscroll(
+      cordinate,
+      containerBound,
+      getDnDMove,
+      getProp,
+      getContainer,
+      callback
+    )
+  }
 })
 </script>
 
