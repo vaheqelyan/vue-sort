@@ -4,6 +4,7 @@
 
 <script setup>
 import { ref, inject, provide, reactive, computed, onMounted } from 'vue'
+import { DND_DROP_EVENT } from './constants/dnd'
 
 let bounds = reactive({})
 let dropIds = reactive([])
@@ -15,10 +16,12 @@ let dropId = ref()
 
 let shouldDrop = ref(false)
 
+const emit = defineEmits(['sort', 'add', 'remove'])
+
 const setBound = (bound, dropId) => {
-	Object.assign(bounds, {
-	[dropId]: bound
-	})
+  Object.assign(bounds, {
+    [dropId]: bound,
+  })
 }
 
 const setDropZone = (id) => {
@@ -29,35 +32,46 @@ const setCordinate = (value) => {
   cordinate.value = value
 }
 
- const setDnDFrom = (dropId) => {
-	from.value = dropId
- }
+const setDnDFrom = (dropId) => {
+  from.value = dropId
+}
 
- const setDnDMove = (move, element) => {
-	Object.assign(moveElement, {
+const setDnDMove = (move, element) => {
+  Object.assign(moveElement, {
     ...move,
-    data: { ...element }
+    data: { ...element },
   })
- }
+}
 
- const getDnDBounds = computed(() => {
- 	return Object.entries(bounds)
- })
+const getDnDBounds = computed(() => {
+  return Object.entries(bounds)
+})
 
- const dndDrop = () => {
+const dndDrop = () => {
   shouldDrop.value = true
- }
+}
 
- const dndCleanUp = () => {
+const dndCleanUp = () => {
+  setDropZone(null)
+  shouldDrop.value = false
 
-setDropZone(null)
-   shouldDrop.value = false
+  setDnDFrom(null)
+  setCordinate(0)
+}
 
-   setDnDFrom(null)
-   setCordinate(0)
- }
-
-
+const dndEmitDrop = (event, payload) => {
+  switch (event) {
+    case DND_DROP_EVENT.SORT:
+      emit('sort', payload)
+      break
+    case DND_DROP_EVENT.ADD:
+      emit('add', payload)
+      break
+    case DND_DROP_EVENT.REMOVE:
+      emit('remove', payload)
+      break
+  }
+}
 
 provide('bounds', bounds)
 
@@ -70,7 +84,6 @@ provide('getCordinate', cordinate)
 provide('setDnDFrom', setDnDFrom)
 provide('getDnDFrom', from)
 
-
 provide('getDnDMove', moveElement)
 provide('setDnDMove', setDnDMove)
 
@@ -80,4 +93,5 @@ provide('shouldDrop', shouldDrop)
 
 provide('dndCleanUp', dndCleanUp)
 
+provide('dndEmitDrop', dndEmitDrop)
 </script>

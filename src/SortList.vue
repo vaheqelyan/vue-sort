@@ -87,6 +87,8 @@ let height = ref(0)
 let offset = ref(0)
 let newIndex = ref(-1)
 
+let filterIndex = ref(-1)
+
 const setDnDBound = inject('setBound')
 const getCordinate = inject('getCordinate')
 const getDnDId = inject('getDropId')
@@ -94,12 +96,19 @@ const setDnDFrom = inject('setDnDFrom')
 const getDnDFrom = inject('getDnDFrom')
 const getDnDMove = inject('getDnDMove')
 const setDnDMove = inject('setDnDMove')
-const shouldDrop = inject('shouldDrop')
+//const shouldDrop = inject('shouldDrop')
 
 const dndCleanUp = inject('dndCleanUp')
 
 const { autoscroll, stopAutoscroll } = useAutoscroll()
-const { isIn, selfDrag } = useDnD(props.dropId)
+const { isIn, selfDrag, dropEvent } = useDnD({
+  dropId: props.dropId,
+  on: {
+    drop: () => onEnd(),
+  },
+  activeIndex,
+  newIndex,
+})
 
 onMounted(() => {
   const { viewportSize, windowSize } = getProp.value
@@ -116,6 +125,14 @@ onMounted(() => {
   setDnDBound(container.value.getBoundingClientRect(), props.dropId)
 })
 
+const getList = computed(() => {
+  if (filterIndex.value !== -1) {
+    return props.list.filter((_, index) => index !== filterIndex.value)
+  }
+
+  return props.list
+})
+
 const getVirtualList = computed(() => {
   let start = (offset.value / props.rowHeight) | 0
   let visibleRowCount = (height.value / props.rowHeight) | 0
@@ -126,7 +143,7 @@ const getVirtualList = computed(() => {
   }
   let end = start + 1 + visibleRowCount
 
-  let selection = props.list.slice(start, end)
+  let selection = getList.value.slice(start, end)
 
   return {
     selection,
@@ -136,7 +153,7 @@ const getVirtualList = computed(() => {
 })
 
 const getContainerHeight = computed(() => {
-  const size = props.list.length * props.rowHeight
+  const size = getList.value.length * props.rowHeight
 
   return {
     size,
@@ -243,41 +260,21 @@ const onScroll = () => {
 
 const dndBounds = inject('bounds')
 
-watch(shouldDrop, (drag) => {
-  if (!drag) return
-
-  if (isIn.value && selfDrag.value) {
-    emit('sort', {
-      index: activeIndex.value,
-      newIndex: newIndex.value,
-    })
-    onEnd()
-    dndCleanUp()
-  }
-
-  if (isIn.value && !selfDrag.value) {
-    emit('dnd-insert', {
-      index: activeIndex.value,
-      element: getDnDMove.data,
-    })
-
-    onEnd()
-    dndCleanUp()
-  }
-
-  if (getDnDFrom.value === props.dropId) {
-    emit('remove', { index: getDnDMove.index })
-
-    onEnd()
-  }
-})
-
-watch(isIn, (hasEntered) => {
+watch(isIn, (hasEntered, prevValue) => {
   if (hasEntered) {
     if (selfDrag.value) {
       activeIndex.value = getDnDMove.index
+      filterIndex.value = -1
     }
   } else {
+    if (getDnDFrom.value === props.dropId) {
+      filterIndex.value = activeIndex.value
+
+      console.log('leave from')
+    } else {
+      console.log('leave')
+    }
+
     stopAutoscroll()
     activeIndex.value = -1
     newIndex.value = -1

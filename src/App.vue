@@ -56,7 +56,7 @@ const onSort2 = ({ index, newIndex }) => {
 </script>
 
 <template>
-  <DnDProvider>
+  <DnDProvider @sort="onSort" @remove="onRemove" @add="onInsert">
   <!--<DynamicVirtualList
     :list="items"
     @sort="onSort"
@@ -79,8 +79,6 @@ const onSort2 = ({ index, newIndex }) => {
 
   <SortList
     :list="items"
-    @sort="onSort"
-    @remove="onRemove"
     item-id="key"
     class="container"
     :row-height="100"
@@ -103,8 +101,6 @@ const onSort2 = ({ index, newIndex }) => {
 
   <SortList
     :list="items2"
-    @sort="onSort2"
-    @dnd-insert="onInsert"
     item-id="key"
     class="container container--pos"
     :row-height="100"
