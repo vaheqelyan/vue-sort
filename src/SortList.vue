@@ -246,6 +246,7 @@ const onEnd = () => {
   activeIndex.value = -1
   newIndex.value = -1
   startDrag.value = false
+  filterIndex.value = -1
 }
 
 const onScroll = () => {
