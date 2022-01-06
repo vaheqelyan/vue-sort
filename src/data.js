@@ -34,6 +34,7 @@ export default fill(30, (i) => {
 		key: `_${i}`,
 		name: getName(),
 		content: createRandomGarbage(),
-		avatar: avatars[rand(0, avatars.length)]
+		avatar: avatars[rand(0, avatars.length)],
+    data: []
 	};
 });

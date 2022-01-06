@@ -237,6 +237,7 @@ const onNew = (y) => {
 const onStartDrag = (value) => {
   setDnDFrom(props.dropId)
   setDnDMove(value, props.list[value.index])
+
   activeIndex.value = value.index
   startDrag.value = true
 }
@@ -269,7 +270,6 @@ watch(isIn, (hasEntered, prevValue) => {
   } else {
     if (getDnDFrom.value === props.dropId) {
       filterIndex.value = activeIndex.value
-
       console.log('leave from')
     } else {
       console.log('leave')

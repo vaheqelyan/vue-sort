@@ -6,6 +6,7 @@
 
 <script setup>
 import { DIRECTION } from './constants/props'
+import { findBucket } from './util'
 import { inject, onMounted, ref, provide, reactive, computed } from 'vue'
 
 const EDGE_THRESHOLD = 20
@@ -17,27 +18,15 @@ const props = defineProps({
   direction: String,
 })
 
-let initXY = reactive({
-  x: 0,
-  y: 0,
-})
-
 let newXY = reactive({
   x: 0,
   y: 0,
 })
 
-let containerBound = reactive({ width: 0, height: 0, top: 0, left: 0 })
-
 const height = ref(0)
 const width = ref(0)
 const top = ref(0)
 const left = ref(0)
-
-let edge = reactive({
-  top: 0,
-  bottom: 0,
-})
 
 const emit = defineEmits(['end'])
 
@@ -49,40 +38,19 @@ const dndDrop = inject('dndDrop')
 onMounted(() => {
   window.addEventListener('mousemove', mousemove)
   window.addEventListener('mouseup', mouseup)
-
-  initXY = reactive(props.move.initXY)
-  edge = reactive(props.move.edge)
-
-  containerBound = reactive(props.move.containerBound)
 })
 
 const mousemove = ({ clientX, clientY }) => {
   const { targetBound } = props.move
+  const { initXY } = props.move
 
   newXY.x = clientX - initXY.x
   newXY.y = clientY - initXY.y
 
   const y = newXY[getProp.value.axis]
 
-  let foundId
-
-  for (let i = 0; i < dndBounds.value.length; i++) {
-    let [dropId, bound] = dndBounds.value[i]
-
-		var isOverlap = !(targetBound.right + newXY.x < bound.left || 
-                targetBound.left + newXY.x > bound.right || 
-                targetBound.bottom + newXY.y < bound.top || 
-                targetBound.top + newXY.y > bound.bottom)
-
-    if (isOverlap) {
-      foundId = dropId
-      break
-    }
-  }
-
-  dndSetDropZone(foundId)
-
-	dndSetCordinate(y)
+  dndSetDropZone(findBucket(newXY, targetBound, dndBounds.value))
+  dndSetCordinate(y)
 }
 
 const mouseup = () => {
@@ -92,12 +60,9 @@ const mouseup = () => {
   newXY.x = 0
   newXY.y = 0
 
-  edge.top = 0
-  edge.bottom = 0
-
   //emit('end')
 
-	dndDrop()
+  dndDrop()
 }
 
 const getStyle = computed(() => {

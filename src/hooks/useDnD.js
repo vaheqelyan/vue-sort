@@ -17,10 +17,7 @@ export default ({ dropId, on, activeIndex, newIndex }) => {
   watch(getDnDId, (id) => {
     if (id === dropId) {
       selfDrag.value = dropId === getDnDFrom.value
-
-      if (!isIn.value) {
-        isIn.value = true
-      }
+      isIn.value = true
     } else if (isIn.value) {
       isIn.value = false
     }
@@ -30,11 +27,13 @@ export default ({ dropId, on, activeIndex, newIndex }) => {
     if (!drag) return
 
     if (isIn.value && selfDrag.value) {
-      dndEmitDrop(DND_DROP_EVENT.SORT, {
-        index: activeIndex.value,
-        newIndex: newIndex.value,
-        dropId,
-      })
+      if (newIndex.value > -1) {
+        dndEmitDrop(DND_DROP_EVENT.SORT, {
+          index: activeIndex.value,
+          newIndex: newIndex.value,
+          dropId,
+        })
+      }
 
       dndCleanUp()
     }
@@ -49,7 +48,7 @@ export default ({ dropId, on, activeIndex, newIndex }) => {
       dndCleanUp()
     }
 
-    if (getDnDFrom.value === dropId) {
+    if (!selfDrag.value && getDnDFrom.value === dropId) {
       dndEmitDrop(DND_DROP_EVENT.REMOVE, { index: getDnDMove.index, dropId })
     }
 

@@ -419,7 +419,7 @@ watch(getCordinate, (cordinate) => {
 
 .vList__row {
   flex-shrink: 0;
-  max-width: 100px;
+  max-width: 150px;
 }
 
 .vList__content--row {

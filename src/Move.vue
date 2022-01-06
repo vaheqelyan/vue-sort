@@ -9,7 +9,8 @@
 </template>
 
 <script setup>
-import { ref, provide, reactive, computed } from 'vue'
+import { ref, provide, reactive, computed, inject } from 'vue'
+import { findBucket } from './util'
 import { DIRECTION } from './constants/props'
 
 const EDGE_THRESHOLD = 20
@@ -19,7 +20,7 @@ const props = defineProps({
   hasStarted: Boolean,
   boundEntries: Array,
   columnName: String,
-	activeIndex: Number,
+  activeIndex: Number,
   container: HTMLDivElement,
   index: Number,
   newIndex: Number,
@@ -56,6 +57,9 @@ const edge = reactive({
   bottom: 0,
 })
 
+const dndBounds = inject('getDnDBounds')
+const dndSetDropZone = inject('setDropZone')
+
 const emit = defineEmits(['start'])
 
 const mousedown = (event) => {
@@ -64,22 +68,23 @@ const mousedown = (event) => {
   initXY.x = clientX
   initXY.y = clientY
 
-  targetBound = reactive(currentTarget.getBoundingClientRect())
+  const targetBound = currentTarget.getBoundingClientRect()
+  const containerBound = props.container.getBoundingClientRect()
 
-  containerBound = reactive(props.container.getBoundingClientRect())
+  //enlargeEdges()
 
-  enlargeEdges()
+  dndSetDropZone(findBucket(initXY, targetBound, dndBounds.value))
 
   emit('start', {
-    targetBound: targetBound,
-    containerBound: containerBound,
+    targetBound,
+    containerBound,
     initXY: initXY,
     edge: edge,
     index: props.index,
   })
 }
 
-const enlargeEdges = () => {
+/*const enlargeEdges = () => {
   const height = targetBound[getProp.size]
   const top = targetBound[getProp.position]
 
@@ -95,7 +100,7 @@ const enlargeEdges = () => {
   if (topSensor) {
     edge.top = top - (containerTop + EDGE_THRESHOLD)
   }
-}
+}*/
 
 const getProp = computed(() => {
   const propMap = {
@@ -117,7 +122,7 @@ const getProp = computed(() => {
 })
 
 const getStyle = computed(() => {
-	const { activeIndex } = props
+  const { activeIndex } = props
 
   if (
     !props.hasStarted ||
@@ -131,13 +136,9 @@ const getStyle = computed(() => {
 
   const translateSize = props.moveInstance.targetBound[size]
 
-  const isDown = (props.newIndex - activeIndex) > 0
+  const isDown = props.newIndex - activeIndex > 0
 
-  if (
-    props.index >= activeIndex &&
-    props.index <= props.newIndex &&
-    isDown
-  ) {
+  if (props.index >= activeIndex && props.index <= props.newIndex && isDown) {
     return {
       transform: `translate${translateAxis}(${-translateSize}px)`,
     }

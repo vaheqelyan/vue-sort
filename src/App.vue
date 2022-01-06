@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import SortList from './SortList.vue'
 import DynamicVirtualList from './DynamicVirtualList.vue'
 import DnDProvider from './DnDProvider.vue'
@@ -19,14 +19,18 @@ const items = ref(dataItems)
 
 const items2 = ref(dataItems.slice())
 
+items.value[items.value.length - 1] = {
+  ...items.value[items.value.length - 1],
+  data: [1, 2, 3, 4, 5],
+}
 
 Array.prototype.move = function (from, to) {
   this.splice(to, 0, this.splice(from, 1)[0])
   return this
 }
 
-Array.prototype.insert = function ( index, item ) {
-    this.splice( index, 0, item )
+Array.prototype.insert = function (index, item) {
+  this.splice(index, 0, item)
 }
 
 const onInsert = ({ index, element }) => {
@@ -37,7 +41,6 @@ const onInsert = ({ index, element }) => {
 const onRemove = ({ index }) => {
   items.value.splice(index, 1)
 }
-
 
 const onSort = ({ index, newIndex }) => {
   let data = items.value.slice()
@@ -52,32 +55,32 @@ const onSort2 = ({ index, newIndex }) => {
   data = data.move(index, newIndex)
   items2.value = data
 }
-
 </script>
 
 <template>
   <DnDProvider @sort="onSort" @remove="onRemove" @add="onInsert">
-  <!--<DynamicVirtualList
-    :list="items"
-    @sort="onSort"
-    item-id="key"
-    class="container"
-    :row-height="100"
-    direction="row"
-  >
-    <template v-slot:item="{ item, isActive }">
-      <div class="row" :class="{ invisible: isActive }">
-        {{ item.data.key }} {{ item.data.content }}
-      </div>
-    </template>
+    <!--<DynamicVirtualList
+      :list="items"
+      drop-id="bucket-1"
+      @sort="onSort"
+      item-id="key"
+      class="container"
+      :row-height="100"
+      direction="row"
+    >
+      <template v-slot:item="{ item, isActive }">
+        <div class="row" :class="{ invisible: isActive }">
+          {{ item.data.key }} {{ item.data.content }}
+          {{ item.data.data }}
+        </div>
+      </template>
 
-    <template v-slot:drag-element="{ item }">
-      <div class="item">{{ item.key }}</div>
-    </template>
-  </DynamicVirtualList>-->
+      <template v-slot:drag-element="{ item }">
+        <div class="item">{{ item.key }}</div>
+      </template>
+    </DynamicVirtualList>-->
 
-
-  <SortList
+    <SortList
     :list="items"
     item-id="key"
     class="container"
@@ -119,8 +122,6 @@ const onSort2 = ({ index, newIndex }) => {
       <div class="item">{{ item.key }}</div>
     </template>
   </SortList>
-
-
   </DnDProvider>
 </template>
 
