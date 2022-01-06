@@ -227,10 +227,8 @@ const onUpdate = (y) => {
 
 const onNew = (y) => {
   let index = Math.round((offset.value + y) / props.rowHeight)
-
   index = Math.min(Math.max(0, index), props.list.length - 1)
 
-  activeIndex.value = index
   newIndex.value = index
 }
 
@@ -238,7 +236,6 @@ const onStartDrag = (value) => {
   setDnDFrom(props.dropId)
   setDnDMove(value, props.list[value.index])
 
-  activeIndex.value = value.index
   startDrag.value = true
 }
 
@@ -268,6 +265,8 @@ watch(isIn, (hasEntered, prevValue) => {
       activeIndex.value = getDnDMove.index
       filterIndex.value = -1
     }
+
+    startDrag.value = true
   } else {
     if (getDnDFrom.value === props.dropId) {
       filterIndex.value = activeIndex.value

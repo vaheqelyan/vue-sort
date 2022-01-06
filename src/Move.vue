@@ -122,31 +122,31 @@ const getProp = computed(() => {
 })
 
 const getStyle = computed(() => {
-  const { activeIndex } = props
+  const { activeIndex, newIndex } = props
 
-  if (
-    !props.hasStarted ||
-    props.newIndex === -1 ||
-    activeIndex === -1 ||
-    activeIndex === props.index
-  )
+  if (!props.hasStarted || newIndex === -1 || activeIndex === props.index)
     return
 
   const { translateAxis, size } = getProp.value
 
   const translateSize = props.moveInstance.targetBound[size]
 
-  const isDown = props.newIndex - activeIndex > 0
+console.log(activeIndex)
+  if (activeIndex === -1 && props.index >= newIndex) {
+    return {
+      transform: `translate${translateAxis}(${translateSize}px)`,
+    }
+  }
 
-  if (props.index >= activeIndex && props.index <= props.newIndex && isDown) {
+  if (activeIndex === -1) {
+    return {}
+  }
+
+  if (props.index >= activeIndex && props.index <= newIndex) {
     return {
       transform: `translate${translateAxis}(${-translateSize}px)`,
     }
-  } else if (
-    props.index <= activeIndex &&
-    props.index >= props.newIndex &&
-    !isDown
-  ) {
+  } else if (props.index <= activeIndex && props.index >= newIndex) {
     return {
       transform: `translate${translateAxis}(${translateSize}px)`,
     }
