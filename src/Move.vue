@@ -78,8 +78,6 @@ const mousedown = (event) => {
 
   //enlargeEdges()
 
-  dndSetDropZone(findBucket(initXY, targetBound, dndBounds.value))
-
   const top = targetBound[getProp.value.position]
 
   const containerTop = containerBound[getProp.value.position]

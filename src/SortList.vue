@@ -2,13 +2,9 @@
   <div>
     <div class="scrollList" ref="container" @scroll="onScroll" v-bind="$attrs">
       <div class="scrollList__inner" :style="getContainerHeight.style">
-        <!--<div
-          class="scrollList__content"
-          :class="getDirectionClass"
-          :style="getVirtualList.style"
-        >-->
         <move
           :start-transition="startTransition"
+          :item="item"
           :filter-index="filterIndex"
           v-for="(item, index) in getVirtualList.selection"
           :key="item[itemId]"
@@ -24,7 +20,6 @@
         >
           <slot name="item" v-bind:item="item" v-bind:is-active="false" />
         </move>
-        <!--</div>-->
       </div>
     </div>
 
@@ -98,6 +93,7 @@ const getDnDFrom = inject('getDnDFrom')
 const getDnDMove = inject('getDnDMove')
 const setDnDMove = inject('setDnDMove')
 const dndCleanUp = inject('dndCleanUp')
+const dndSetDropZone = inject('setDropZone')
 
 const { autoscroll, stopAutoscroll } = useAutoscroll()
 const { isIn, selfDrag, dropEvent } = useDnD({
@@ -155,7 +151,7 @@ const getVirtualList = computed(() => {
 })
 
 const getContainerHeight = computed(() => {
-  const size = getList.value.length * props.rowHeight
+  const size = props.list.length * props.rowHeight
 
   return {
     size,
@@ -173,15 +169,6 @@ const getDirectionSize = computed(() => {
   const classMap = {
     [DIRECTION.ROW]: 'width',
     [DIRECTION.COLUMN]: 'height',
-  }
-
-  return classMap[props.direction]
-})
-
-const getDirectionClass = computed(() => {
-  const classMap = {
-    [DIRECTION.ROW]: 'scrollList__content--row',
-    [DIRECTION.COLUMN]: 'scrollList__content--col',
   }
 
   return classMap[props.direction]
@@ -235,10 +222,14 @@ const onNew = (y) => {
 }
 
 const onStartDrag = (value) => {
+  dndSetDropZone(props.dropId)
   setDnDFrom(props.dropId)
   setDnDMove(value, props.list[value.index])
 
   filterIndex.value = value.index
+  console.log(filterIndex.value)
+
+
   startDrag.value = true
   newIndex.value = value.index
   activeIndex.value = value.index
@@ -312,23 +303,5 @@ watch(getCordinate, (cordinate) => {
   overflow: hidden;
   width: 100%;
   min-height: 100%;
-}
-
-.scrollList__content {
-  /*position: relative;*/
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 100%;
-  display: flex;
-}
-
-.scrollList__content--row {
-  flex-direction: row;
-}
-
-.scrollList__content--col {
-  flex-direction: column;
 }
 </style>
