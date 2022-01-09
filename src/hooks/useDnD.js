@@ -1,7 +1,7 @@
 import { watch, ref, inject, provide, reactive, computed, onMounted } from 'vue'
 import { DND_DROP_EVENT } from '../constants/dnd'
 
-export default ({ dropId, on, activeIndex, newIndex }) => {
+export default ({ dropId, on, newIndex }) => {
   const getDnDId = inject('getDropId')
   const getDnDFrom = inject('getDnDFrom')
   const shouldDrop = inject('shouldDrop')
@@ -29,13 +29,15 @@ export default ({ dropId, on, activeIndex, newIndex }) => {
     if (isIn.value && selfDrag.value) {
       if (newIndex.value > -1) {
         dndEmitDrop(DND_DROP_EVENT.SORT, {
-          index: activeIndex.value,
+          index: getDnDMove.index,
           newIndex: newIndex.value,
           dropId,
         })
       }
 
       dndCleanUp()
+      on.drop()
+      return
     }
 
     if (isIn.value && !selfDrag.value) {
@@ -46,13 +48,14 @@ export default ({ dropId, on, activeIndex, newIndex }) => {
       })
 
       dndCleanUp()
+      on.drop()
     }
 
-    if (!selfDrag.value && getDnDFrom.value === dropId) {
+    if (selfDrag.value && getDnDFrom.value === dropId) {
       dndEmitDrop(DND_DROP_EVENT.REMOVE, { index: getDnDMove.index, dropId })
-    }
 
-    on.drop()
+      on.drop()
+    }
   })
 
   return { isIn, selfDrag }

@@ -2,35 +2,35 @@
   <div>
     <div class="scrollList" ref="container" @scroll="onScroll" v-bind="$attrs">
       <div class="scrollList__inner" :style="getContainerHeight.style">
-        <div
+        <!--<div
           class="scrollList__content"
           :class="getDirectionClass"
           :style="getVirtualList.style"
+        >-->
+        <move
+          :start-transition="startTransition"
+          :filter-index="filterIndex"
+          v-for="(item, index) in getVirtualList.selection"
+          :key="item[itemId]"
+          @start="onStartDrag"
+          :start-number="getVirtualList.start"
+          :has-started="isIn"
+          :container="container"
+          :index="getVirtualList.start + index"
+          :active-index="activeIndex"
+          :new-index="newIndex"
+          :move-instance="getDnDMove"
+          :direction="direction"
         >
-          <move
-            v-for="(item, index) in getVirtualList.selection"
-            :key="item[itemId]"
-            @start="onStartDrag"
-            :has-started="startDrag"
-            :container="container"
-            :index="getVirtualList.start + index"
-            :active-index="activeIndex"
-            :new-index="newIndex"
-            :move-instance="getDnDMove"
-            :direction="direction"
-          >
-            <slot
-              name="item"
-              v-bind:item="item"
-              v-bind:is-active="getVirtualList.start + index === activeIndex"
-            />
-          </move>
-        </div>
+          <slot name="item" v-bind:item="item" v-bind:is-active="false" />
+        </move>
+        <!--</div>-->
       </div>
     </div>
 
     <dragger
       v-if="startDrag"
+      @firstMove="setTransition"
       :move="getDnDMove"
       :container="getContainer"
       :direction="direction"
@@ -80,6 +80,7 @@ const emit = defineEmits(['sort', 'dnd-insert'])
 
 let startDrag = ref(false)
 const container = ref()
+let startTransition = ref(false)
 
 let activeIndex = ref(-1)
 let height = ref(0)
@@ -96,8 +97,6 @@ const setDnDFrom = inject('setDnDFrom')
 const getDnDFrom = inject('getDnDFrom')
 const getDnDMove = inject('getDnDMove')
 const setDnDMove = inject('setDnDMove')
-//const shouldDrop = inject('shouldDrop')
-
 const dndCleanUp = inject('dndCleanUp')
 
 const { autoscroll, stopAutoscroll } = useAutoscroll()
@@ -106,7 +105,6 @@ const { isIn, selfDrag, dropEvent } = useDnD({
   on: {
     drop: () => onEnd(),
   },
-  activeIndex,
   newIndex,
 })
 
@@ -124,6 +122,10 @@ onMounted(() => {
 
   setDnDBound(container.value.getBoundingClientRect(), props.dropId)
 })
+
+const setTransition = () => {
+  startTransition.value = true
+}
 
 const getList = computed(() => {
   if (filterIndex.value !== -1) {
@@ -236,10 +238,14 @@ const onStartDrag = (value) => {
   setDnDFrom(props.dropId)
   setDnDMove(value, props.list[value.index])
 
+  filterIndex.value = value.index
   startDrag.value = true
+  newIndex.value = value.index
+  activeIndex.value = value.index
 }
 
 const onEnd = () => {
+  startTransition.value = false
   activeIndex.value = -1
   newIndex.value = -1
   startDrag.value = false
@@ -261,22 +267,19 @@ const dndBounds = inject('bounds')
 
 watch(isIn, (hasEntered, prevValue) => {
   if (hasEntered) {
-    if (selfDrag.value) {
-      activeIndex.value = getDnDMove.index
-      filterIndex.value = -1
+    if (!selfDrag.value) {
+      startTransition.value = true
     }
-
-    startDrag.value = true
   } else {
     if (getDnDFrom.value === props.dropId) {
-      filterIndex.value = activeIndex.value
-      console.log('leave from')
+      //filterIndex.value = getDnDMove.index
+      // Leave from
     } else {
-      console.log('leave')
+      // Leave
     }
 
     stopAutoscroll()
-    activeIndex.value = -1
+    //activeIndex.value = -1
     newIndex.value = -1
   }
 })

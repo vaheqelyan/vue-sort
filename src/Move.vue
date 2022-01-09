@@ -1,8 +1,10 @@
 <template>
   <div
+    :data-index="index"
     @mousedown="mousedown"
     :style="getStyle"
-    :class="{ 'transition no-select': hasStarted }"
+    :class="{ 'transition no-select': startTransition }"
+    class="item"
   >
     <slot />
   </div>
@@ -26,6 +28,9 @@ const props = defineProps({
   newIndex: Number,
   moveInstance: Object,
   direction: String,
+  startNumber: Number,
+  filterIndex: Number,
+  startTransition: Boolean,
 })
 
 const initXY = reactive({
@@ -75,12 +80,17 @@ const mousedown = (event) => {
 
   dndSetDropZone(findBucket(initXY, targetBound, dndBounds.value))
 
+  const top = targetBound[getProp.value.position]
+
+  const containerTop = containerBound[getProp.value.position]
+
   emit('start', {
     targetBound,
     containerBound,
     initXY: initXY,
     edge: edge,
     index: props.index,
+    initPosition: top - containerTop,
   })
 }
 
@@ -122,39 +132,36 @@ const getProp = computed(() => {
 })
 
 const getStyle = computed(() => {
-  const { activeIndex, newIndex } = props
-
-  if (!props.hasStarted || newIndex === -1 || activeIndex === props.index)
-    return
+  const { index, activeIndex, newIndex } = props
 
   const { translateAxis, size } = getProp.value
 
-  const translateSize = props.moveInstance.targetBound[size]
+  if (props.hasStarted) {
+    const translateSize = props.moveInstance.targetBound[size]
 
-console.log(activeIndex)
-  if (activeIndex === -1 && props.index >= newIndex) {
-    return {
-      transform: `translate${translateAxis}(${translateSize}px)`,
+    let y = index * 100
+
+    if (index >= newIndex && newIndex !== -1) {
+      return {
+        top: `${index * 100}px`,
+        transform: `translate${translateAxis}(${100}px)`,
+      }
     }
   }
 
-  if (activeIndex === -1) {
-    return {}
-  }
-
-  if (props.index >= activeIndex && props.index <= newIndex) {
-    return {
-      transform: `translate${translateAxis}(${-translateSize}px)`,
-    }
-  } else if (props.index <= activeIndex && props.index >= newIndex) {
-    return {
-      transform: `translate${translateAxis}(${translateSize}px)`,
-    }
+  return {
+    top: `${index * 100}px`,
   }
 })
 </script>
 
 <style>
+.item {
+  position: absolute;
+  width: 100%;
+  height: 100px !important;
+}
+
 .transition {
   transition: transform 0.2s;
 }

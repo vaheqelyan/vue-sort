@@ -28,7 +28,7 @@ const width = ref(0)
 const top = ref(0)
 const left = ref(0)
 
-const emit = defineEmits(['end'])
+const emit = defineEmits(['end', 'firstMove'])
 
 const dndBounds = inject('getDnDBounds')
 const dndSetDropZone = inject('setDropZone')
@@ -40,9 +40,19 @@ onMounted(() => {
   window.addEventListener('mouseup', mouseup)
 })
 
+function noop() {}
+
+let once = () => {
+  once = noop
+
+  emit('firstMove')
+}
+
 const mousemove = ({ clientX, clientY }) => {
   const { targetBound } = props.move
   const { initXY } = props.move
+
+  once()
 
   newXY.x = clientX - initXY.x
   newXY.y = clientY - initXY.y
