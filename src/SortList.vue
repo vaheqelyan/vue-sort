@@ -3,6 +3,7 @@
     <div class="scrollList" ref="container" @scroll="onScroll" v-bind="$attrs">
       <div class="scrollList__inner" :style="getContainerHeight.style">
         <move
+          :row-height="rowHeight"
           :start-transition="startTransition"
           :item="item"
           :filter-index="filterIndex"
@@ -18,7 +19,7 @@
           :move-instance="getDnDMove"
           :direction="direction"
         >
-          <slot name="item" v-bind:item="item" v-bind:is-active="false" />
+          <slot name="item" v-bind:item="item" />
         </move>
       </div>
     </div>
@@ -296,6 +297,6 @@ watch(getCordinate, (cordinate) => {
   position: relative;
   overflow: hidden;
   width: 100%;
-  min-height: 100%;
+  height: 100%;
 }
 </style>

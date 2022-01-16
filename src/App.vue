@@ -80,19 +80,17 @@ const onSort2 = ({ index, newIndex }) => {
       </template>
     </DynamicVirtualList>-->
 
-    <SortList
+  <SortList
     :list="items"
     item-id="key"
     class="container"
     :row-height="100"
 		drop-id="bucket-1"
+    direction="row"
   >
-    <template v-slot:item="{ item, isActive }">
+    <template v-slot:item="{ item }">
       <div class="row">
-        <div v-if="isActive" class="row--active">
-          Hello {{ item.key }} 
-        </div>
-        <div v-else>Helo {{ item.key }}</div>
+        Hello {{ item.key }} 
       </div>
     </template>
 
@@ -102,7 +100,7 @@ const onSort2 = ({ index, newIndex }) => {
   </SortList>
 
 
-  <SortList
+  <!--<SortList
     :list="items2"
     item-id="key"
     class="container container--pos"
@@ -121,7 +119,8 @@ const onSort2 = ({ index, newIndex }) => {
     <template v-slot:drag-element="{ item }">
       <div class="item">{{ item.key }}</div>
     </template>
-  </SortList>
+  </SortList>-->
+
   </DnDProvider>
 </template>
 
@@ -147,15 +146,13 @@ const onSort2 = ({ index, newIndex }) => {
 .row {
   background: #fff;
   /*max-width: 200px;*/
-  height: 100px;
+  /*height: 100px;*/
+  width: 100%;
+  height: 100%;
   box-shadow: 0px 0px 5px red inset;
 }
 
 .invisible {
-  visibility: hidden;
-}
-
-.row--active {
   visibility: hidden;
 }
 </style>

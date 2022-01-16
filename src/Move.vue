@@ -3,7 +3,7 @@
     :data-index="index"
     @mousedown="mousedown"
     :style="getStyle"
-    :class="{ 'transition no-select': startTransition }"
+    :class="getClass"
     class="item"
   >
     <slot />
@@ -17,6 +17,7 @@ import { DIRECTION } from './constants/props'
 const EDGE_THRESHOLD = 20
 
 const props = defineProps({
+  rowHeight: Number,
   item: Object,
   hasStarted: Boolean,
   boundEntries: Array,
@@ -125,26 +126,35 @@ const getProp = computed(() => {
   return propMap[props.direction]
 })
 
-const getStyle = computed(() => {
-  const { index, activeIndex, newIndex } = props
+const getClass = computed(() => {
+  return [
+    { 'transition no-select': props.startTransition },
+    `vue-sort--${props.direction}`
+  ]
+})
 
-  const { translateAxis, size } = getProp.value
+const getStyle = computed(() => {
+  const { index, activeIndex, newIndex, rowHeight } = props
+
+  const { position, translateAxis, size } = getProp.value
 
   if (props.hasStarted) {
     const translateSize = props.moveInstance.targetBound[size]
 
-    let y = index * 100
+    let y = index * rowHeight
 
     if (index >= newIndex && newIndex !== -1) {
       return {
-        top: `${index * 100}px`,
-        transform: `translate${translateAxis}(${100}px)`,
+        [position]: `${index * rowHeight}px`,
+        transform: `translate${translateAxis}(${rowHeight}px)`,
+        [size]: `${rowHeight}px`
       }
     }
   }
 
   return {
-    top: `${index * 100}px`,
+    [position]: `${index * rowHeight}px`,
+    [size]: `${rowHeight}px`
   }
 })
 </script>
@@ -153,7 +163,6 @@ const getStyle = computed(() => {
 .item {
   position: absolute;
   width: 100%;
-  height: 100px !important;
 }
 
 .transition {
@@ -166,5 +175,13 @@ const getStyle = computed(() => {
 
 .no-select {
   user-select: none;
+}
+
+.vue-sort--column {
+  width: 100%;
+}
+
+.vue-sort--row {
+  height: 100%;
 }
 </style>
