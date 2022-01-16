@@ -73,7 +73,20 @@ const dndEmitDrop = (event, payload) => {
   }
 }
 
+const startDnD = ({ fromBucket, element }) => {
+  dropId.value = fromBucket
+  from.value = fromBucket
+
+  Object.assign(moveElement, {
+    ...element,
+    //data: { ...element }, ?
+  })
+}
+
 provide('bounds', bounds)
+
+
+provide('startDnD', startDnD)
 
 provide('getDnDBounds', getDnDBounds)
 provide('getDropId', dropId)

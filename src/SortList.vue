@@ -87,13 +87,9 @@ let filterIndex = ref(-1)
 
 const setDnDBound = inject('setBound')
 const getCordinate = inject('getCordinate')
-const getDnDId = inject('getDropId')
-const setDnDFrom = inject('setDnDFrom')
 const getDnDFrom = inject('getDnDFrom')
 const getDnDMove = inject('getDnDMove')
-const setDnDMove = inject('setDnDMove')
-const dndCleanUp = inject('dndCleanUp')
-const dndSetDropZone = inject('setDropZone')
+const startDnD = inject('startDnD')
 
 const { autoscroll, stopAutoscroll } = useAutoscroll()
 const { isIn, selfDrag, dropEvent } = useDnD({
@@ -222,14 +218,12 @@ const onNew = (y) => {
 }
 
 const onStartDrag = (value) => {
-  dndSetDropZone(props.dropId)
-  setDnDFrom(props.dropId)
-  setDnDMove(value, props.list[value.index])
+  startDnD({
+    fromBucket: props.dropId,
+    element: value,
+  })
 
   filterIndex.value = value.index
-  console.log(filterIndex.value)
-
-
   startDrag.value = true
   newIndex.value = value.index
   activeIndex.value = value.index
