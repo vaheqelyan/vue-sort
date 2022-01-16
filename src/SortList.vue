@@ -3,6 +3,8 @@
     <div class="scrollList" ref="container" @scroll="onScroll" v-bind="$attrs">
       <div class="scrollList__inner" :style="getContainerHeight.style">
         <move
+          :item-id="itemId"
+          :disable-event="disableEvent"
           :row-height="rowHeight"
           :start-transition="startTransition"
           :item="item"
@@ -19,7 +21,9 @@
           :move-instance="getDnDMove"
           :direction="direction"
         >
-          <slot name="item" v-bind:item="item" />
+          <template #default="{ mousedown }">
+            <slot name="item" :item="item" :mousedown="mousedown" />
+          </template>
         </move>
       </div>
     </div>
@@ -57,6 +61,7 @@ Array.prototype.move = function (from, to) {
 }
 
 const props = defineProps({
+  disableEvent: Boolean,
   list: Array,
   itemId: String,
   rowHeight: Number,

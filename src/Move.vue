@@ -1,12 +1,12 @@
 <template>
   <div
-    :data-index="index"
-    @mousedown="mousedown"
+    :data-vsort-item="item[itemId]"
+    v-on="bindEvent"
     :style="getStyle"
     :class="getClass"
     class="item"
   >
-    <slot />
+    <slot :mousedown="mousedown" />
   </div>
 </template>
 
@@ -17,6 +17,8 @@ import { DIRECTION } from './constants/props'
 const EDGE_THRESHOLD = 20
 
 const props = defineProps({
+  itemId: String,
+  disableEvent: Boolean,
   rowHeight: Number,
   item: Object,
   hasStarted: Boolean,
@@ -65,12 +67,16 @@ const edge = reactive({
 const emit = defineEmits(['start'])
 
 const mousedown = (event) => {
-  const { clientX, clientY, currentTarget } = event
+  const { clientX, clientY } = event
+
+  const target = document.querySelector(
+    `[data-vsort-item="${props.item[props.itemId]}"]`
+  )
 
   initXY.x = clientX
   initXY.y = clientY
 
-  const targetBound = currentTarget.getBoundingClientRect()
+  const targetBound = target.getBoundingClientRect()
   const containerBound = props.container.getBoundingClientRect()
 
   //enlargeEdges()
@@ -129,8 +135,12 @@ const getProp = computed(() => {
 const getClass = computed(() => {
   return [
     { 'transition no-select': props.startTransition },
-    `vue-sort--${props.direction}`
+    `vue-sort--${props.direction}`,
   ]
+})
+
+const bindEvent = computed(() => {
+  return !props.disableEvent ? { mousedown } : {}
 })
 
 const getStyle = computed(() => {
@@ -147,14 +157,14 @@ const getStyle = computed(() => {
       return {
         [position]: `${index * rowHeight}px`,
         transform: `translate${translateAxis}(${rowHeight}px)`,
-        [size]: `${rowHeight}px`
+        [size]: `${rowHeight}px`,
       }
     }
   }
 
   return {
     [position]: `${index * rowHeight}px`,
-    [size]: `${rowHeight}px`
+    [size]: `${rowHeight}px`,
   }
 })
 </script>
