@@ -5,10 +5,8 @@ export default ({ dropId, on, newIndex }) => {
   const getDnDId = inject('getDropId')
   const getDnDFrom = inject('getDnDFrom')
   const shouldDrop = inject('shouldDrop')
-  const dndCleanUp = inject('dndCleanUp')
-
+  const endDnD = inject('endDnD')
   const dndEmitDrop = inject('dndEmitDrop')
-
   const getDnDMove = inject('getDnDMove')
 
   let isIn = ref(false)
@@ -35,7 +33,7 @@ export default ({ dropId, on, newIndex }) => {
         })
       }
 
-      dndCleanUp()
+      endDnD()
       on.drop()
       return
     }
@@ -47,7 +45,7 @@ export default ({ dropId, on, newIndex }) => {
         dropId,
       })
 
-      dndCleanUp()
+      endDnD()
       on.drop()
     }
 

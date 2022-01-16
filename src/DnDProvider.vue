@@ -51,14 +51,6 @@ const dndDrop = () => {
   shouldDrop.value = true
 }
 
-const dndCleanUp = () => {
-  setDropZone(null)
-  shouldDrop.value = false
-
-  setDnDFrom(null)
-  setCordinate(0)
-}
-
 const dndEmitDrop = (event, payload) => {
   switch (event) {
     case DND_DROP_EVENT.SORT:
@@ -83,10 +75,22 @@ const startDnD = ({ fromBucket, element }) => {
   })
 }
 
+const endDnD = () => {
+  shouldDrop.value = false
+  setCordinate(0)
+  startDnD({ fromBucket: null, element: {} })
+}
+
+const updateDnD = (xy, dropZone) => {
+  cordinate.value = xy
+  dropId.value = dropZone
+}
+
 provide('bounds', bounds)
-
-
 provide('startDnD', startDnD)
+provide('endDnD', endDnD)
+provide('updateDnD', updateDnD)
+
 
 provide('getDnDBounds', getDnDBounds)
 provide('getDropId', dropId)
@@ -103,8 +107,5 @@ provide('setDnDMove', setDnDMove)
 provide('dndDrop', dndDrop)
 
 provide('shouldDrop', shouldDrop)
-
-provide('dndCleanUp', dndCleanUp)
-
 provide('dndEmitDrop', dndEmitDrop)
 </script>

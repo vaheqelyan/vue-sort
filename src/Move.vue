@@ -12,7 +12,6 @@
 
 <script setup>
 import { ref, provide, reactive, computed, inject } from 'vue'
-import { findBucket } from './util'
 import { DIRECTION } from './constants/props'
 
 const EDGE_THRESHOLD = 20
@@ -61,9 +60,6 @@ const edge = reactive({
   top: 0,
   bottom: 0,
 })
-
-const dndBounds = inject('getDnDBounds')
-const dndSetDropZone = inject('setDropZone')
 
 const emit = defineEmits(['start'])
 

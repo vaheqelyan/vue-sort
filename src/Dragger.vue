@@ -31,8 +31,7 @@ const left = ref(0)
 const emit = defineEmits(['end', 'firstMove'])
 
 const dndBounds = inject('getDnDBounds')
-const dndSetDropZone = inject('setDropZone')
-const dndSetCordinate = inject('setDnDCordinate')
+const updateDnD = inject('updateDnD')
 const dndDrop = inject('dndDrop')
 
 onMounted(() => {
@@ -59,8 +58,7 @@ const mousemove = ({ clientX, clientY }) => {
 
   const y = newXY[getProp.value.axis]
 
-  dndSetDropZone(findBucket(newXY, targetBound, dndBounds.value))
-  dndSetCordinate(y)
+  updateDnD(y, findBucket(newXY, targetBound, dndBounds.value))
 }
 
 const mouseup = () => {
