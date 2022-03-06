@@ -151,11 +151,8 @@ const getStyle = computed(() => {
   if (props.hasStarted) {
     const translateSize = props.moveInstance.targetBound[size]
 
-    let y = index * rowHeight
-
     if (index >= newIndex && newIndex !== -1) {
       return {
-        [position]: `${index * rowHeight}px`,
         transform: `translate${translateAxis}(${rowHeight}px)`,
         [size]: `${rowHeight}px`,
       }
@@ -163,7 +160,6 @@ const getStyle = computed(() => {
   }
 
   return {
-    [position]: `${index * rowHeight}px`,
     [size]: `${rowHeight}px`,
   }
 })
@@ -171,7 +167,6 @@ const getStyle = computed(() => {
 
 <style>
 .item {
-  position: absolute;
   width: 100%;
 }
 

@@ -1,7 +1,7 @@
 <template>
-  <div>
-    <div class="scrollList" ref="container" @scroll="onScroll" v-bind="$attrs">
-      <div class="scrollList__inner" :style="getContainerHeight.style">
+  <div style="overflow: auto;">
+    <div class="scrollList" ref="container" @scroll="onScroll" v-bind="$attrs" :style="getContainerHeight.style">
+      <div class="scrollList__inner">
         <move
           :item-id="itemId"
           :disable-event="disableEvent"
@@ -295,13 +295,14 @@ watch(getCordinate, (cordinate) => {
 
 <style>
 .scrollList {
-  overflow-y: scroll;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+  height: 100%;
 }
 
 .scrollList__inner {
-  position: relative;
-  overflow: hidden;
-  width: 100%;
-  height: 100%;
+  display: flex;
+  position: absolute; height: 100%; width: 100%; overflow: visible;
 }
 </style>
