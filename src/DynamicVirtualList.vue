@@ -13,6 +13,11 @@
           v-for="(row, index) in visible"
           :key="row.data[itemId]"
           @start="onStartDrag"
+          :disable-event="disableEvent"
+          :item="row.data"
+          :height-map="heightMap"
+          :row-height="heightMap[start + index]"
+          :item-id="itemId"
           :has-started="hasStarted"
           :container="viewport"
           :index="start + index"
@@ -28,9 +33,19 @@
             v-bind:is-active="start + index === activeIndex"
           />
         </Move>
+        <!--<div
+          class="vList__row"
+          v-for="(row, index) in visible"
+          :key="row.data[itemId]"
+        >
+          #<strong>{{ start + index }}</strong> {{ row.data.content }}
+        </div>-->
       </div>
 
       <div :style="{ flexBasis: `${bottom}px`, flexShrink: 0 }"></div>
+
+      <!--<div style="width: 1px; position: absolute; top: 0;" :style="{ height: `${top + bottom}px` }"/>-->
+
     </div>
 
     <Dragger
@@ -81,6 +96,7 @@ const props = defineProps({
   list: Array,
   viewport: Boolean,
   itemId: String,
+  disableEvent: Boolean,
   direction: {
     type: String,
     default: DIRECTION.COLUMN,
@@ -102,7 +118,7 @@ let heightMap = reactive([])
 let averageHeight = ref(0)
 // ---
 let hasStarted = ref(false)
-let newIndex = ref(-1)
+let newIndex = ref(0)
 let activeIndex = ref(-1)
 let offset = ref(0)
 let filterIndex = ref(-1)
@@ -150,6 +166,7 @@ const initVisibleRows = async () => {
   await nextTick()
 
   let content_height = top.value - scrollTop
+
   let i = start.value
 
   while (content_height < viewportHeight.value && i < props.list.length) {
@@ -184,6 +201,13 @@ const resized = () => {
   }
 }
 
+const hMap = computed(() => {
+  if (filterIndex.value !== -1) {
+    return heightMap.map((value, index) => index === filterIndex.value ? 0 : value)
+  }
+  return heightMap
+})
+
 const onScroll = async () => {
   let scrollTop = 0
 
@@ -195,14 +219,14 @@ const onScroll = async () => {
 
   offset.value = scrollTop
 
-  const listLength = props.list.length
+  const listLength = props.list.length + (hasStarted.value ? -1 : 0)
 
   // Get start
   let i = 0
   let totalHeight = 0
 
   while (i < listLength) {
-    const rowHeight = heightMap[i] || averageHeight.value
+    const rowHeight = hMap.value[i] ?? averageHeight.value
 
     if (totalHeight + rowHeight > scrollTop) {
       start.value = i
@@ -216,12 +240,12 @@ const onScroll = async () => {
   }
 
   while (i < listLength) {
-    if (heightMap[i]) {
-      totalHeight += heightMap[i]
+    if (hMap.value[i] !== undefined) {
+      totalHeight += hMap.value[i]
     } else if (rows.value[i]) {
       totalHeight += rows.value[i][getProp.value.offsetSize]
     } else {
-      end.value = i + 1
+      end.value = i + 2
       await nextTick()
 
       const rowOffsetHeight =
@@ -249,6 +273,7 @@ const onStartDrag = (value) => {
   setDnDFrom(props.dropId)
   setDnDMove(value, props.list[value.index])
 
+  filterIndex.value = value.index
   hasStarted.value = true
   activeIndex.value = value.index
 }
@@ -292,14 +317,21 @@ const onEnd = () => {
     activeIndex.value = -1
     newIndex.value = -1
     hasStarted.value = false
+    filterIndex.value = -1
   }
 }
 
 const visible = computed(() => {
-  return props.list.slice(start.value, end.value).map((data, i) => ({
+  const result = props.list.slice(start.value, end.value).map((data, i) => ({
     index: i + start.value,
     data,
   }))
+
+  if (filterIndex.value !== -1) {
+    return result.filter((value) => value.index !== filterIndex.value)
+  }
+
+  return result
 })
 
 const getContentStyle = computed(() => {
@@ -352,11 +384,11 @@ watch(isIn, (hasEntered, prevValue) => {
   if (hasEntered) {
     if (selfDrag.value) {
       activeIndex.value = getDnDMove.index
-      filterIndex.value = -1
+      // filterIndex.value = -1
     }
   } else {
     if (getDnDFrom.value === props.dropId) {
-      filterIndex.value = activeIndex.value
+      // filterIndex.value = activeIndex.value
 
       //console.log('leave from')
     } else {
@@ -403,6 +435,7 @@ watch(getCordinate, (cordinate) => {
 }
 
 .vList__inner--column {
+  position: relative;
   overflow-y: scroll;
   flex-direction: column;
 }
@@ -413,6 +446,7 @@ watch(getCordinate, (cordinate) => {
 }
 
 .vList__content {
+  position: relative;
   display: flex;
   flex-shrink: 0;
 }

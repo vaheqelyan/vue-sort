@@ -9,7 +9,7 @@ function fill(len, fn) {
 }
 
 function createRandomGarbage() {
-	const numWords = rand(4, 50);
+	const numWords = rand(4, 20);
 	return fill(numWords, () => {
 		const numLetters = rand(3, 12);
 		return fill(numLetters, () => String.fromCharCode(rand(97,122))).join('')

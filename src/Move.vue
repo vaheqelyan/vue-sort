@@ -33,6 +33,8 @@ const props = defineProps({
   startNumber: Number,
   filterIndex: Number,
   startTransition: Boolean,
+  
+  heightMap: Array
 })
 
 const initXY = reactive({
@@ -144,7 +146,9 @@ const bindEvent = computed(() => {
 })
 
 const getStyle = computed(() => {
-  const { index, activeIndex, newIndex, rowHeight } = props
+  const { index, activeIndex, newIndex } = props
+
+  const rowHeight = props.heightMap[index]
 
   const { position, translateAxis, size } = getProp.value
 
@@ -153,14 +157,14 @@ const getStyle = computed(() => {
 
     if (index >= newIndex && newIndex !== -1) {
       return {
-        transform: `translate${translateAxis}(${rowHeight}px)`,
-        [size]: `${rowHeight}px`,
+        transform: `translate${translateAxis}(${translateSize}px)`,
+        // [size]: `${rowHeight}px`,
       }
     }
   }
 
   return {
-    [size]: `${rowHeight}px`,
+    // [size]: `${rowHeight}px`,
   }
 })
 </script>
@@ -168,6 +172,7 @@ const getStyle = computed(() => {
 <style>
 .item {
   width: 100%;
+  height: auto!important;
 }
 
 .transition {
