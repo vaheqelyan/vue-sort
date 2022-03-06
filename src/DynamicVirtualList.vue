@@ -312,12 +312,12 @@ const onEnd = () => {
 
     heightMap = reactive(newHeightMap.move(activeIndex, newIndex.value))
 
-    onScroll()
-
     activeIndex.value = -1
     newIndex.value = -1
     hasStarted.value = false
     filterIndex.value = -1
+
+    onScroll()
   }
 }
 
