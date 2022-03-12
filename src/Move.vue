@@ -148,8 +148,6 @@ const bindEvent = computed(() => {
 const getStyle = computed(() => {
   const { index, activeIndex, newIndex } = props
 
-  const rowHeight = props.heightMap[index]
-
   const { position, translateAxis, size } = getProp.value
 
   if (props.hasStarted) {
@@ -158,13 +156,11 @@ const getStyle = computed(() => {
     if (index >= newIndex && newIndex !== -1) {
       return {
         transform: `translate${translateAxis}(${translateSize}px)`,
-        // [size]: `${rowHeight}px`,
       }
     }
   }
 
   return {
-    // [size]: `${rowHeight}px`,
   }
 })
 </script>
