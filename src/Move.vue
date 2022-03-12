@@ -156,11 +156,13 @@ const getStyle = computed(() => {
     if (index >= newIndex && newIndex !== -1) {
       return {
         transform: `translate${translateAxis}(${translateSize}px)`,
+    width: `100px`
       }
     }
   }
 
   return {
+    width: `100px`
   }
 })
 </script>
@@ -168,7 +170,7 @@ const getStyle = computed(() => {
 <style>
 .item {
   width: 100%;
-  height: auto!important;
+  /*height: auto!important;*/
 }
 
 .transition {

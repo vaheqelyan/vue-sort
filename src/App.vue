@@ -59,7 +59,7 @@ const onSort2 = ({ index, newIndex }) => {
 
 <template>
   <DnDProvider @sort="onSort" @remove="onRemove" @add="onInsert">
-    <DynamicVirtualList
+    <!--<DynamicVirtualList
       :list="items"
       drop-id="bucket-1"
       @sort="onSort"
@@ -76,9 +76,9 @@ const onSort2 = ({ index, newIndex }) => {
       <template v-slot:drag-element="{ item }">
         <div class="item">{{ item.content }}</div>
       </template>
-    </DynamicVirtualList>
+    </DynamicVirtualList>-->
 
-    <!--<SortList
+    <SortList
       :list="items"
       item-id="key"
       class="container"
@@ -97,7 +97,7 @@ const onSort2 = ({ index, newIndex }) => {
       <template v-slot:drag-element="{ item }">
         <div class="item">{{ item.key }}</div>
       </template>
-    </SortList>-->
+    </SortList>
 
     <!--<SortList
     :list="items2"

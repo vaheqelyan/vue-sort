@@ -1,7 +1,7 @@
 <template>
-  <div style="overflow: auto;">
-    <div class="scrollList" ref="container" @scroll="onScroll" v-bind="$attrs" :style="getContainerHeight.style">
-      <div class="scrollList__inner">
+  <div style="overflow: auto;" @scroll="onScroll" v-bind="$attrs" ref="container">
+    <div class="scrollList" :style="getContainerHeight.style">
+      <div class="scrollList__inner" :style="getVirtualList.style">
         <move
           :item-id="itemId"
           :disable-event="disableEvent"
