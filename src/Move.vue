@@ -11,10 +11,10 @@
 </template>
 
 <script setup>
-import { ref, provide, reactive, computed, inject } from 'vue'
-import { DIRECTION } from './constants/props'
+import { ref, provide, reactive, computed, inject } from 'vue';
+import { DIRECTION } from './constants/props';
 
-const EDGE_THRESHOLD = 20
+const EDGE_THRESHOLD = 20;
 
 const props = defineProps({
   itemId: String,
@@ -33,59 +33,59 @@ const props = defineProps({
   startNumber: Number,
   filterIndex: Number,
   startTransition: Boolean,
-  
-  heightMap: Array
-})
+
+  heightMap: Array,
+});
 
 const initXY = reactive({
   x: 0,
   y: 0,
-})
+});
 
 const newXY = reactive({
   x: 0,
   y: 0,
-})
+});
 
-let targetBound = reactive({ width: 0, height: 0, top: 0, left: 0 })
-let containerBound = reactive({ width: 0, height: 0, top: 0, left: 0 })
+let targetBound = reactive({ width: 0, height: 0, top: 0, left: 0 });
+let containerBound = reactive({ width: 0, height: 0, top: 0, left: 0 });
 
-const height = ref(0)
-const width = ref(0)
-const top = ref(0)
-const left = ref(0)
+const height = ref(0);
+const width = ref(0);
+const top = ref(0);
+const left = ref(0);
 // Autoscroll
-const oldY = ref(0)
-const t = ref(0)
-const vel = ref(1)
-const sign = ref(0)
-const intervalId = ref(false)
+const oldY = ref(0);
+const t = ref(0);
+const vel = ref(1);
+const sign = ref(0);
+const intervalId = ref(false);
 
 const edge = reactive({
   top: 0,
   bottom: 0,
-})
+});
 
-const emit = defineEmits(['start'])
+const emit = defineEmits(['start']);
 
 const mousedown = (event) => {
-  const { clientX, clientY } = event
+  const { clientX, clientY } = event;
 
   const target = document.querySelector(
     `[data-vsort-item="${props.item[props.itemId]}"]`
-  )
+  );
 
-  initXY.x = clientX
-  initXY.y = clientY
+  initXY.x = clientX;
+  initXY.y = clientY;
 
-  const targetBound = target.getBoundingClientRect()
-  const containerBound = props.container.getBoundingClientRect()
+  const targetBound = target.getBoundingClientRect();
+  const containerBound = props.container.getBoundingClientRect();
 
   //enlargeEdges()
 
-  const top = targetBound[getProp.value.position]
+  const top = targetBound[getProp.value.position];
 
-  const containerTop = containerBound[getProp.value.position]
+  const containerTop = containerBound[getProp.value.position];
 
   emit('start', {
     targetBound,
@@ -94,8 +94,8 @@ const mousedown = (event) => {
     edge: edge,
     index: props.index,
     initPosition: top - containerTop,
-  })
-}
+  });
+};
 
 /*const enlargeEdges = () => {
   const height = targetBound[getProp.size]
@@ -129,48 +129,59 @@ const getProp = computed(() => {
       position: 'top',
       containerPosition: 'bottom',
     },
-  }
+  };
 
-  return propMap[props.direction]
-})
+  return propMap[props.direction];
+});
 
 const getClass = computed(() => {
   return [
     { 'transition no-select': props.startTransition },
     `vue-sort--${props.direction}`,
-  ]
-})
+  ];
+});
 
 const bindEvent = computed(() => {
-  return !props.disableEvent ? { mousedown } : {}
-})
+  return !props.disableEvent ? { mousedown } : {};
+});
 
 const getStyle = computed(() => {
-  const { index, activeIndex, newIndex } = props
+  const { index, activeIndex, newIndex } = props;
 
-  const { position, translateAxis, size } = getProp.value
+  const { position, translateAxis, size } = getProp.value;
 
   if (props.hasStarted) {
-    const translateSize = props.moveInstance.targetBound[size]
+    const translateSize = props.moveInstance.targetBound[size];
+
+    // if (index === activeIndex) return {position:'fixed',left:'-1000px'}
+    // if (index === activeIndex) {
+    // return { position: 'fixed', top: '-500px' };
+    // }
+
+    // if (index===newIndex) {
+    // return { background:'red', transform: `translate${translateAxis}(${translateSize}px)`,}
+    // }
+
+    // console.log(index, newIndex, index >= newIndex);
 
     if (index >= newIndex && newIndex !== -1) {
       return {
         transform: `translate${translateAxis}(${translateSize}px)`,
-    width: `100px`
-      }
+        // width: `100px`
+      };
     }
   }
 
   return {
-    width: `100px`
-  }
-})
+    // width: `100px`
+  };
+});
 </script>
 
 <style>
 .item {
   width: 100%;
-  /*height: auto!important;*/
+  height: auto !important;
 }
 
 .transition {

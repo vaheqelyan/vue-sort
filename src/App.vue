@@ -1,60 +1,61 @@
 <script setup>
-import { onMounted, ref } from 'vue'
-import SortList from './SortList.vue'
-import DynamicVirtualList from './DynamicVirtualList.vue'
-import DnDProvider from './DnDProvider.vue'
-import dataItems from './data.js'
+import { onMounted, ref } from 'vue';
+import SortList from './SortList.vue';
+import DynamicVirtualList from './DynamicVirtualList.vue';
+import List from './List.vue';
+import DnDProvider from './DnDProvider.vue';
+import dataItems from './data.js';
 
-const msg = ref('Hello World!')
+const msg = ref('Hello World!');
 
 function uid() {
-  var firstPart = (Math.random() * 46656) | 0
-  var secondPart = (Math.random() * 46656) | 0
-  firstPart = ('000' + firstPart.toString(36)).slice(-3)
-  secondPart = ('000' + secondPart.toString(36)).slice(-3)
-  return firstPart + secondPart
+  var firstPart = (Math.random() * 46656) | 0;
+  var secondPart = (Math.random() * 46656) | 0;
+  firstPart = ('000' + firstPart.toString(36)).slice(-3);
+  secondPart = ('000' + secondPart.toString(36)).slice(-3);
+  return firstPart + secondPart;
 }
 
-const items = ref(dataItems)
+const items = ref(dataItems);
 
-const items2 = ref(dataItems.slice())
+const items2 = ref(dataItems.slice());
 
 items.value[items.value.length - 1] = {
   ...items.value[items.value.length - 1],
   data: [1, 2, 3, 4, 5],
-}
+};
 
 Array.prototype.move = function (from, to) {
-  this.splice(to, 0, this.splice(from, 1)[0])
-  return this
-}
+  this.splice(to, 0, this.splice(from, 1)[0]);
+  return this;
+};
 
 Array.prototype.insert = function (index, item) {
-  this.splice(index, 0, item)
-}
+  this.splice(index, 0, item);
+};
 
 const onInsert = ({ index, element }) => {
-  const newItem = { ...element, key: element.key + Math.random() }
-  items2.value.insert(index, newItem)
-}
+  const newItem = { ...element, key: element.key + Math.random() };
+  items2.value.insert(index, newItem);
+};
 
 const onRemove = ({ index }) => {
-  items.value.splice(index, 1)
-}
+  items.value.splice(index, 1);
+};
 
 const onSort = ({ index, newIndex }) => {
-  let data = items.value.slice()
+  let data = items.value.slice();
 
-  data = data.move(index, newIndex)
-  items.value = data
-}
+  data = data.move(index, newIndex);
+  items.value = data;
+};
 
 const onSort2 = ({ index, newIndex }) => {
-  let data = items2.value.slice()
+  let data = items2.value.slice();
 
-  data = data.move(index, newIndex)
-  items2.value = data
-}
+  data = data.move(index, newIndex);
+  items2.value = data;
+};
 </script>
 
 <template>
@@ -74,11 +75,27 @@ const onSort2 = ({ index, newIndex }) => {
       </template>
 
       <template v-slot:drag-element="{ item }">
-        <div class="item">{{ item.content }}</div>
+        <div class="item">#{{item.key}} {{ item.content }}</div>
       </template>
     </DynamicVirtualList>-->
 
-    <SortList
+    <List
+      :list="items"
+      item-id="key"
+      class="container"
+      drop-id="bucket-1"
+      direction="column"
+    >
+      <template v-slot:item="{ item }">
+        <div style="padding: 10px">Item {{ item.content }}</div>
+      </template>
+
+      <template v-slot:drag-element="{ item }">
+        <div class="item" style="padding: 10px">Item {{ item.content }}</div>
+      </template>
+    </List>
+
+    <!--<SortList
       :list="items"
       item-id="key"
       class="container"
@@ -97,7 +114,7 @@ const onSort2 = ({ index, newIndex }) => {
       <template v-slot:drag-element="{ item }">
         <div class="item">{{ item.key }}</div>
       </template>
-    </SortList>
+    </SortList>-->
 
     <!--<SortList
     :list="items2"

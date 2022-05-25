@@ -1,5 +1,10 @@
 <template>
-  <div style="overflow: auto;" @scroll="onScroll" v-bind="$attrs" ref="container">
+  <div
+    style="overflow: auto"
+    @scroll="onScroll"
+    v-bind="$attrs"
+    ref="container"
+  >
     <div class="scrollList" :style="getContainerHeight.style">
       <div class="scrollList__inner" :style="getVirtualList.style">
         <move
@@ -43,22 +48,30 @@
 </template>
 
 <script setup>
-import Move from './Move.vue'
-import Dragger from './Dragger.vue'
-import { DIRECTION } from './constants/props'
-import { watch, ref, inject, provide, reactive, computed, onMounted } from 'vue'
-import useAutoscroll from './hooks/useAutoscroll'
-import useDnD from './hooks/useDnD'
+import Move from './Move.vue';
+import Dragger from './Dragger.vue';
+import { DIRECTION } from './constants/props';
+import {
+  watch,
+  ref,
+  inject,
+  provide,
+  reactive,
+  computed,
+  onMounted,
+} from 'vue';
+import useAutoscroll from './hooks/useAutoscroll';
+import useDnD from './hooks/useDnD';
 
 const EVENT_OPTS = {
   passive: true,
   capture: true,
-}
+};
 
 Array.prototype.move = function (from, to) {
-  this.splice(to, 0, this.splice(from, 1)[0])
-  return this
-}
+  this.splice(to, 0, this.splice(from, 1)[0]);
+  return this;
+};
 
 const props = defineProps({
   disableEvent: Boolean,
@@ -75,106 +88,106 @@ const props = defineProps({
     type: String,
     default: DIRECTION.COLUMN,
   },
-})
+});
 
-const emit = defineEmits(['sort', 'dnd-insert'])
+const emit = defineEmits(['sort', 'dnd-insert']);
 
-let startDrag = ref(false)
-const container = ref()
-let startTransition = ref(false)
+let startDrag = ref(false);
+const container = ref();
+let startTransition = ref(false);
 
-let activeIndex = ref(-1)
-let height = ref(0)
+let activeIndex = ref(-1);
+let height = ref(0);
 
-let offset = ref(0)
-let newIndex = ref(-1)
+let offset = ref(0);
+let newIndex = ref(-1);
 
-let filterIndex = ref(-1)
+let filterIndex = ref(-1);
 
-const setDnDBound = inject('setBound')
-const getCordinate = inject('getCordinate')
-const getDnDFrom = inject('getDnDFrom')
-const getDnDMove = inject('getDnDMove')
-const startDnD = inject('startDnD')
+const setDnDBound = inject('setBound');
+const getCordinate = inject('getCordinate');
+const getDnDFrom = inject('getDnDFrom');
+const getDnDMove = inject('getDnDMove');
+const startDnD = inject('startDnD');
 
-const { autoscroll, stopAutoscroll } = useAutoscroll()
+const { autoscroll, stopAutoscroll } = useAutoscroll();
 const { isIn, selfDrag, dropEvent } = useDnD({
   dropId: props.dropId,
   on: {
     drop: () => onEnd(),
   },
   newIndex,
-})
+});
 
 onMounted(() => {
-  const { viewportSize, windowSize } = getProp.value
+  const { viewportSize, windowSize } = getProp.value;
 
   if (!props.viewport) {
-    height.value = container.value[viewportSize]
+    height.value = container.value[viewportSize];
   } else {
-    height.value = window[windowSize] || document.documentElement[viewportSize]
+    height.value = window[windowSize] || document.documentElement[viewportSize];
 
-    window.addEventListener('scroll', onScroll, EVENT_OPTS)
-    window.addEventListener('resize', onResize, EVENT_OPTS)
+    window.addEventListener('scroll', onScroll, EVENT_OPTS);
+    window.addEventListener('resize', onResize, EVENT_OPTS);
   }
 
-  setDnDBound(container.value.getBoundingClientRect(), props.dropId)
-})
+  setDnDBound(container.value.getBoundingClientRect(), props.dropId);
+});
 
 const setTransition = () => {
-  startTransition.value = true
-}
+  startTransition.value = true;
+};
 
 const getList = computed(() => {
   if (filterIndex.value !== -1) {
-    return props.list.filter((_, index) => index !== filterIndex.value)
+    return props.list.filter((_, index) => index !== filterIndex.value);
   }
 
-  return props.list
-})
+  return props.list;
+});
 
 const getVirtualList = computed(() => {
-  let start = (offset.value / props.rowHeight) | 0
-  let visibleRowCount = (height.value / props.rowHeight) | 0
+  let start = (offset.value / props.rowHeight) | 0;
+  let visibleRowCount = (height.value / props.rowHeight) | 0;
 
   if (props.overscanCount) {
-    start = Math.max(0, start - (start % props.overscanCount))
-    visibleRowCount += props.overscanCount
+    start = Math.max(0, start - (start % props.overscanCount));
+    visibleRowCount += props.overscanCount;
   }
-  let end = start + 1 + visibleRowCount
+  let end = start + 1 + visibleRowCount;
 
-  let selection = getList.value.slice(start, end)
+  let selection = getList.value.slice(start, end);
 
   return {
     selection,
     style: { [getProp.value.position]: `${start * props.rowHeight}px` },
     start,
-  }
-})
+  };
+});
 
 const getContainerHeight = computed(() => {
-  const size = props.list.length * props.rowHeight
+  const size = props.list.length * props.rowHeight;
 
   return {
     size,
     style: {
       [getDirectionSize.value]: `${size}px`,
     },
-  }
-})
+  };
+});
 
 const getContainer = computed(() => {
-  return props.viewport ? document.documentElement : container.value
-})
+  return props.viewport ? document.documentElement : container.value;
+});
 
 const getDirectionSize = computed(() => {
   const classMap = {
     [DIRECTION.ROW]: 'width',
     [DIRECTION.COLUMN]: 'height',
-  }
+  };
 
-  return classMap[props.direction]
-})
+  return classMap[props.direction];
+});
 
 const getProp = computed(() => {
   const classMap = {
@@ -196,70 +209,70 @@ const getProp = computed(() => {
 
       size: 'height',
     },
-  }
+  };
 
-  return classMap[props.direction]
-})
+  return classMap[props.direction];
+});
 
 const onResize = () => {
-  let height = window.innerHeight || document.documentElement.offsetHeight
+  let height = window.innerHeight || document.documentElement.offsetHeight;
   if (height !== height) {
-    height = height
+    height = height;
   }
-}
+};
 
 const onUpdate = (y) => {
-  let index = Math.round((offset.value + y) / props.rowHeight)
+  let index = Math.round((offset.value + y) / props.rowHeight);
 
-  index = Math.min(Math.max(0, index), props.list.length - 1)
+  index = Math.min(Math.max(0, index), props.list.length - 1);
 
-  newIndex.value = index
-}
+  newIndex.value = index;
+};
 
 const onNew = (y) => {
-  let index = Math.round((offset.value + y) / props.rowHeight)
-  index = Math.min(Math.max(0, index), props.list.length - 1)
+  let index = Math.round((offset.value + y) / props.rowHeight);
+  index = Math.min(Math.max(0, index), props.list.length - 1);
 
-  newIndex.value = index
-}
+  newIndex.value = index;
+};
 
 const onStartDrag = (value) => {
   startDnD({
     fromBucket: props.dropId,
     element: value,
-  })
+  });
 
-  filterIndex.value = value.index
-  startDrag.value = true
-  newIndex.value = value.index
-  activeIndex.value = value.index
-}
+  filterIndex.value = value.index;
+  startDrag.value = true;
+  newIndex.value = value.index;
+  activeIndex.value = value.index;
+};
 
 const onEnd = () => {
-  startTransition.value = false
-  activeIndex.value = -1
-  newIndex.value = -1
-  startDrag.value = false
-  filterIndex.value = -1
-}
+  startTransition.value = false;
+  activeIndex.value = -1;
+  newIndex.value = -1;
+  startDrag.value = false;
+  filterIndex.value = -1;
+};
 
 const onScroll = () => {
   if (!props.viewport) {
-    offset.value = container.value[getProp.value.scroll]
+    offset.value = container.value[getProp.value.scroll];
   } else {
     offset.value = Math.max(
       0,
       (container.value && -container.value.getBoundingClientRect().top) || 0
-    )
+    );
   }
-}
+};
 
-const dndBounds = inject('bounds')
+const dndBounds = inject('bounds');
 
 watch(isIn, (hasEntered, prevValue) => {
   if (hasEntered) {
     if (!selfDrag.value) {
-      startTransition.value = true
+      startTransition.value = true;
     }
   } else {
     if (getDnDFrom.value === props.dropId) {
@@ -269,17 +282,17 @@ watch(isIn, (hasEntered, prevValue) => {
       // Leave
     }
 
-    stopAutoscroll()
+    stopAutoscroll();
     //activeIndex.value = -1
-    newIndex.value = -1
+    newIndex.value = -1;
   }
-})
+});
 
 watch(getCordinate, (cordinate) => {
   if (isIn.value) {
-    const containerBound = dndBounds[props.dropId]
+    const containerBound = dndBounds[props.dropId];
 
-    const callback = selfDrag.value ? onUpdate : onNew
+    const callback = selfDrag.value ? onUpdate : onNew;
 
     autoscroll(
       cordinate,
@@ -288,9 +301,9 @@ watch(getCordinate, (cordinate) => {
       getProp,
       getContainer,
       callback
-    )
+    );
   }
-})
+});
 </script>
 
 <style>
@@ -303,6 +316,9 @@ watch(getCordinate, (cordinate) => {
 
 .scrollList__inner {
   display: flex;
-  position: absolute; height: 100%; width: 100%; overflow: visible;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  overflow: visible;
 }
 </style>
