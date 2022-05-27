@@ -86,8 +86,8 @@ const onSort2 = ({ index, newIndex }) => {
       drop-id="bucket-1"
       direction="column"
     >
-      <template v-slot:item="{ item }">
-        <div style="padding: 10px">Item {{ item.content }}</div>
+      <template v-slot:item="{ item, index }">
+        <div style="padding: 10px">Item {{ item.content }} {{ index }}</div>
       </template>
 
       <template v-slot:drag-element="{ item }">

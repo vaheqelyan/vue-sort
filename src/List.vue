@@ -1,5 +1,6 @@
 <template>
   <div>
+    {{ heightMap }} {{getFixedHeight }}
     <div class="c-list" ref="container" @scroll="onScroll">
       <div class="c-list__stick" :style="{ height: `${getFixedHeight}px` }" />
       <move
@@ -20,10 +21,14 @@
         <slot
           name="item"
           v-bind:item="item"
+          v-bind:index="index"
           v-bind:is-active="start + index === activeIndex"
         />
       </move>
     </div>
+
+
+    <div ref="deb"></div>
 
     <dragger
       v-if="startDrag"
@@ -77,9 +82,14 @@ const props = defineProps({
 
 let hasStarted = ref(false);
 let start = ref(0);
+let deb = ref()
+
 let activeIndex = ref(-1);
 const container = ref();
+
 let newIndex = ref(-1);
+let zIndex = ref(-1);
+
 let filterIndex = ref(-1);
 const startDnD = inject('startDnD');
 let startDrag = ref(false);
@@ -128,13 +138,20 @@ const onUpdate = (y) => {
     for (let i = 0; i < heightMap.length; i++) {
       const height = heightMap[i];
 
-      if (topValue + height >= offset.value + y) {
+
+      deb.value.innerHTML = `${topValue} ${topValue + height} ${y + offset.value + (targetHeight / 2)} ${i}
+
+      ${topValue + height >= offset.value + y + (targetHeight / 2)}
+      `
+
+      if (topValue + height >= offset.value + y + (targetHeight / 2)) {
         index = i;
         break;
       }
 
       topValue += height;
     }
+
 
     if (index !== undefined) {
       newIndex.value = index;
@@ -159,8 +176,8 @@ const getList = computed(() => {
 let heightMap = reactive([]);
 onMounted(() => {
   const els = container.value.children;
-  for (let i = 0; i < els.length; i++) {
-    heightMap[i] = els[i].offsetHeight;
+  for (let i = 1; i < els.length; i++) {
+    heightMap[i - 1] = els[i].offsetHeight;
   }
 
   setDnDBound(container.value.getBoundingClientRect(), props.dropId);
