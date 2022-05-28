@@ -45,6 +45,7 @@ const onRemove = ({ index }) => {
 
 const onSort = ({ index, newIndex }) => {
   let data = items.value.slice();
+  console.log('sort')
 
   data = data.move(index, newIndex);
   items.value = data;

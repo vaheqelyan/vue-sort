@@ -98,7 +98,9 @@ let startTransition = ref(false);
 const { isIn, selfDrag, dropEvent } = useDnD({
   dropId: props.dropId,
   on: {
-    drop: () => onEnd(),
+    drop: () => {
+      onEnd()
+    },
   },
   newIndex,
 });
@@ -138,12 +140,6 @@ const onUpdate = (y) => {
     for (let i = 0; i < heightMap.length; i++) {
       const height = heightMap[i];
 
-
-      deb.value.innerHTML = `${topValue} ${topValue + height} ${y + offset.value + (targetHeight / 2)} ${i}
-
-      ${topValue + height >= offset.value + y + (targetHeight / 2)}
-      `
-
       if (topValue + height >= offset.value + y + (targetHeight / 2)) {
         index = i;
         break;
@@ -159,7 +155,13 @@ const onUpdate = (y) => {
   }
 };
 
-const onEnd = () => {};
+const onEnd = () => {
+  startTransition.value = false;
+  activeIndex.value = -1;
+  newIndex.value = -1;
+  startDrag.value = false;
+  filterIndex.value = -1;
+};
 
 const getFixedHeight = computed(() => {
   return heightMap.reduce((acc, value) => acc + value, 0);
