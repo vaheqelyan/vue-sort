@@ -243,15 +243,7 @@ watch(isIn, (hasEntered, prevValue) => {
       startTransition.value = true;
     }
   } else {
-    if (getDnDFrom.value === props.dropId) {
-      //filterIndex.value = getDnDMove.index
-      // Leave from
-    } else {
-      // Leave
-    }
-
     stopAutoscroll();
-    //activeIndex.value = -1
     newIndex.value = -1;
   }
 });
