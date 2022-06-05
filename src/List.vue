@@ -260,15 +260,13 @@ watch(getCordinate, (cordinate) => {
   if (isIn.value) {
     const containerBound = dndBounds[props.dropId];
 
-    const callback = selfDrag.value ? onUpdate : onNew;
-
     autoscroll(
       cordinate,
       containerBound,
       getDnDMove,
       getProp,
       container,
-      callback
+      onUpdate
     );
   }
 });

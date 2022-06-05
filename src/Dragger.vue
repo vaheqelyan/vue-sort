@@ -68,8 +68,6 @@ const mouseup = () => {
   newXY.x = 0;
   newXY.y = 0;
 
-  // emit('end')
-
   dndDrop();
 };
 

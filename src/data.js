@@ -31,12 +31,14 @@ const avatars = [
   'https://images.pexels.com/photos/532310/pexels-photo-532310.jpeg?auto=compress&cs=tinysrgb&h=75',
 ];
 
-export default fill(10, (i) => {
-  return {
-    key: `_${i}`,
-    name: getName(),
-    content: createRandomGarbage(),
-    avatar: avatars[rand(0, avatars.length)],
-    data: [],
-  };
-});
+export default function data () {
+  return fill(10, (i) => {
+    return {
+      key: `_${i + Math.random()}`,
+      name: getName(),
+      content: createRandomGarbage(),
+      avatar: avatars[rand(0, avatars.length)],
+      data: [],
+    };
+  });
+} 

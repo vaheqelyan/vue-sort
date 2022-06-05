@@ -16,14 +16,14 @@ function uid() {
   return firstPart + secondPart;
 }
 
-const items = ref(dataItems);
+const items = ref(dataItems());
 
-const items2 = ref(dataItems.slice());
+const items2 = ref(dataItems())
 
-items.value[items.value.length - 1] = {
-  ...items.value[items.value.length - 1],
-  data: [1, 2, 3, 4, 5],
-};
+// items.value[items.value.length - 1] = {
+  // ...items.value[items.value.length - 1],
+  // data: [1, 2, 3, 4, 5],
+// };
 
 Array.prototype.move = function (from, to) {
   this.splice(to, 0, this.splice(from, 1)[0]);
