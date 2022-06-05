@@ -1,6 +1,5 @@
 <template>
   <div>
-    {{ heightMap }} {{getFixedHeight }}
     <div class="c-list" ref="container" @scroll="onScroll">
       <div class="c-list__stick" :style="{ height: `${getFixedHeight}px` }" />
       <move
@@ -9,7 +8,7 @@
         :key="item[itemId]"
         :item="item"
         :item-id="itemId"
-        :has-started="startDrag"
+        :has-started="isIn"
         :container="container"
         :index="index"
         :active-index="activeIndex"
@@ -128,6 +127,34 @@ const onStartDrag = (value) => {
 };
 
 const onUpdate = (y) => {
+  if (isIn.value) {
+    const targetHeight = getDnDMove.targetBound[getProp.value.size];
+
+    let scrollTop = offset.value + y + targetHeight;
+
+    let index;
+
+    let topValue = 0;
+
+    for (let i = 0; i < heightMap.length; i++) {
+      const height = heightMap[i];
+
+      if (topValue + height >= offset.value + y + (targetHeight / 2)) {
+        index = i;
+        break;
+      }
+
+      topValue += height;
+    }
+
+
+    if (index !== undefined) {
+      newIndex.value = index;
+    }
+  }
+};
+
+const onNew = (y) => {
   if (isIn.value) {
     const targetHeight = getDnDMove.targetBound[getProp.value.size];
 

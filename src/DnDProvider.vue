@@ -69,9 +69,10 @@ const startDnD = ({ fromBucket, element }) => {
   dropId.value = fromBucket
   from.value = fromBucket
 
+  console.log(element)
+
   Object.assign(moveElement, {
     ...element,
-    //data: { ...element }, ?
   })
 }
 

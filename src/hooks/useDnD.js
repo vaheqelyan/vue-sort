@@ -41,7 +41,7 @@ export default ({ dropId, on, newIndex }) => {
     if (isIn.value && !selfDrag.value) {
       dndEmitDrop(DND_DROP_EVENT.ADD, {
         index: newIndex.value,
-        element: getDnDMove.data,
+        element: getDnDMove,
         dropId,
       })
 

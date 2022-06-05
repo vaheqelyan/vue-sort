@@ -35,7 +35,7 @@ Array.prototype.insert = function (index, item) {
 };
 
 const onInsert = ({ index, element }) => {
-  const newItem = { ...element, key: element.key + Math.random() };
+  const newItem = { ...element.dataElement };
   items2.value.insert(index, newItem);
 };
 
@@ -45,7 +45,6 @@ const onRemove = ({ index }) => {
 
 const onSort = ({ index, newIndex }) => {
   let data = items.value.slice();
-  console.log('sort')
 
   data = data.move(index, newIndex);
   items.value = data;
@@ -86,6 +85,23 @@ const onSort2 = ({ index, newIndex }) => {
       class="container"
       drop-id="bucket-1"
       direction="column"
+    >
+      <template v-slot:item="{ item, index }">
+        <div style="padding: 10px">Item {{ item.content }} {{ index }}</div>
+      </template>
+
+      <template v-slot:drag-element="{ item }">
+        <div class="item" style="padding: 10px">Item {{ item.content }}</div>
+      </template>
+    </List>
+
+    <List
+      :list="items2"
+      item-id="key"
+      class="container"
+      drop-id="bucket-2"
+      direction="column"
+      style="left: 800px; top: 100px; position: relative;"
     >
       <template v-slot:item="{ item, index }">
         <div style="padding: 10px">Item {{ item.content }} {{ index }}</div>

@@ -94,6 +94,7 @@ const mousedown = (event) => {
     edge: edge,
     index: props.index,
     initPosition: top - containerTop,
+    dataElement: { ...props.item }
   });
 };
 
